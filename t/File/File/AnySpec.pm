@@ -11,8 +11,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE);
-$VERSION = '1.13';
-$DATE = '2004/04/29';
+$VERSION = '1.14';
+$DATE = '2004/05/03';
 
 use vars qw(@ISA @EXPORT_OK);
 require Exporter;
@@ -295,14 +295,16 @@ Of course since, the variable I<$^O> contains the file specification
 for the current site operating system, it may be used for the
 I<$fspec> variable.
 
-=head2 fspec_glob method
+=head1 SUBROUTINES
+
+=head2 fspec_glob
 
   @globed_files = File::AnySpec->fspec_glob($fspec, @files)
 
 The I<fspec_glob> method BSD globs each of the files in I<@files>
 where the file specification for each of the files is I<$fspec>.
 
-=head2 fspec2fspec method
+=head2 fspec2fspec
 
  $to_file = File::AnySpec->fspec2fspec($from_fspec, $to_fspec $from_file, $nofile)
 
@@ -311,7 +313,7 @@ the I<$from_fspec> to the I<$to_fpsce>. Supplying anything for I<$nofile>, tells
 the I<fspec2fspec> method that I<$from_file> is a directory tree; otherwise, it
 is a file.
 
-=head2 fspec2os method
+=head2 fspec2os
 
   $os_file = File::AnySpec->fspec2os($fspec, $file, $no_file)
 
@@ -321,14 +323,14 @@ Supplying anything for I<$nofile>, tells
 the I<fspec2fspec> method that I<$file> is a directory tree; otherwise, it
 is a file.
 
-=head2 fspec2pm method
+=head2 fspec2pm
 
  $pm_file = File::AnySpec->fspec2pm( $fspec, $relative_file )
 
 The I<fspec2pm> method translates a filespecification I<$file>
 in the I<$fspce> format to the Perl module formate.
 
-=head2 os2fspec method
+=head2 os2fspec
 
  $file = File::AnySpec->os2fspec($fspec, $os_file, $no_file)
 
@@ -338,10 +340,9 @@ Supplying anything for I<$nofile>, tells
 the I<fspec2fspec> method that I<$from_file> is a directory tree; otherwise, it
 is a file.
 
-
 =head1 REQUIREMENTS
 
-Coming soon.
+Someday.
 
 =head1 DEMONSTRATION
 
@@ -397,10 +398,9 @@ follow on the next lines. For example,
 
 =head1 QUALITY ASSURANCE
 
-Running the test script C<version.t> verifies
+Running the test script C<AnySpec.t> verifies
 the requirements for this module.
-
-The <tmake.pl> cover script for L<Test::STDmaker|Test::STDmaker>
+The C<tmake.pl> cover script for L<Test::STDmaker|Test::STDmaker>
 automatically generated the
 C<AnySpec.t> test script, C<AnySpec.d> demo script,
 and C<t::File::AnySpec> STD program module POD,
@@ -487,7 +487,6 @@ ANY WAY OUT OF THE POSSIBILITY OF SUCH DAMAGE.
 =item L<Test::STDmaker|Test::STDmaker> 
 
 =back
-
 
 =cut
 

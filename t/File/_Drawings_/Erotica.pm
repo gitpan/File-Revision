@@ -16,7 +16,7 @@ use warnings::register;
 #
 
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 ###
 # Never know when Data::Dumper going to throw in a VARn
@@ -26,18 +26,19 @@ use vars qw($VAR1 $VAR2 $VAR3 $VAR4 $VAR5 $VAR6 $VAR7 $VAR8);
 use vars qw($contents $white_tape);
 
 $white_tape =  # parts are marked with a pn and other data, many times with a white tape
-   
+
      {
+
        #####
-       # Configuration version control
+       # Configuration revision version control
        #
        version => '0.01',
-       revision => '-',
+       revision => '0',
        date_loc => '2004/04/05 13:34:13', 
        date_gm => '2004/04/05 17:34:13', 
        time_to_live => '', 
        active_obsolete => '',
- 
+
        #####
        # Drawing identification data
        #
@@ -48,24 +49,25 @@ $white_tape =  # parts are marked with a pn and other data, many times with a wh
        description => 'Madonna\'s Erotica Audio CD - narcissistic, dark, brooding, hint of S&M',
        keywords => 'cd single,madonna,music,pop music,madonna,adult contemporary singles,erotica,audio cd,pop,adult,contemporary,erotica,narcissistic,dark,brooding,S&M',
        file => __FILE__,
-       dod_fscm => 'none-SoftDia',
-       dod_title => 'Madonna, Erotica',
-       dod_drawing_number => '04040364301',
 
        ######
        # Drawing classification, authorization, and
        # revision history
        #
        classification => 'Top Secret',
-       revision_block => {},
-       authorization_block => {},
+       revision_history => {},
+       authorization => {},
 
        ######
        # Detail drawing properties. These usually contain
        # information for hard copy or soft rendering of the
        # drawing such as HTML page.
        #
-       properties => {},
+       properties => {
+           dod_fscm => 'none-SoftDia',
+           dod_title => 'Madonna, Erotica',
+           dod_drawing_number => '04040364301',
+       },
 
      };
 

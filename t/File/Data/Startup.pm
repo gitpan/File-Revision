@@ -12,8 +12,8 @@ use warnings::register;
 use attributes;
 
 use vars qw( $VERSION $DATE $FILE);
-$VERSION = '0.03';
-$DATE = '2004/04/29';
+$VERSION = '0.04';
+$DATE = '2004/05/03';
 $FILE = __FILE__;
 
 #######
@@ -385,13 +385,13 @@ follow on the next lines as comments. For example,
      my $uut = 'Data::Startup';
 
      my ($result,@result); # provide scalar and array context
+     my ($default_options,$options) = ('$default_options','$options');
 
  ##################
  # create a Data::Startup default options
  # 
- ###
 
- (my $default_options = new $uut(
+ ($default_options = new $uut(
         perl_secs_numbers => 'multicell',
         type => 'ascii',   
         indent => '',
@@ -409,7 +409,6 @@ follow on the next lines as comments. For example,
  ##################
  # read perl_secs_numbers default option
  # 
- ###
 
  [$default_options->config('perl_secs_numbers')]
 
@@ -422,7 +421,6 @@ follow on the next lines as comments. For example,
  ##################
  # write perl_secs_numbers default option
  # 
- ###
 
  [$default_options->config(perl_secs_numbers => 'strict')]
 
@@ -435,7 +433,6 @@ follow on the next lines as comments. For example,
  ##################
  # restore perl_secs_numbers default option
  # 
- ###
 
  [$default_options->config(perl_secs_numbers => 'multicell')]
 
@@ -448,9 +445,8 @@ follow on the next lines as comments. For example,
  ##################
  # create options copy of default options
  # 
- ###
 
- my $option = $default_options->override(type => 'binary')
+ $options = $default_options->override(type => 'binary')
 
  # bless( {
  #                 'perl_secs_numbers' => 'multicell',
@@ -463,7 +459,6 @@ follow on the next lines as comments. For example,
  ##################
  # verify default options unchanged
  # 
- ###
 
  $default_options
 
@@ -478,9 +473,8 @@ follow on the next lines as comments. For example,
  ##################
  # array reference option config
  # 
- ###
 
- [@result = $option->config([perl_secs_numbers => 'strict'])]
+ [@result = $options->config([perl_secs_numbers => 'strict'])]
 
  # [
  #          'perl_secs_numbers',
@@ -491,9 +485,8 @@ follow on the next lines as comments. For example,
  ##################
  # array reference option config
  # 
- ###
 
- $option
+ $options
 
  # bless( {
  #                 'perl_secs_numbers' => 'strict',
@@ -506,9 +499,8 @@ follow on the next lines as comments. For example,
  ##################
  # hash reference option config
  # 
- ###
 
- [@result = $option->config({'Data::SecsPack'=> {decimal_fraction_digits => 30} })]
+ [@result = $options->config({'Data::SecsPack'=> {decimal_fraction_digits => 30} })]
 
  # [
  #          'Data::SecsPack',
@@ -519,9 +511,8 @@ follow on the next lines as comments. For example,
  ##################
  # hash reference option config
  # 
- ###
 
- $option
+ $options
 
  # bless( {
  #                 'perl_secs_numbers' => 'strict',
@@ -536,7 +527,6 @@ follow on the next lines as comments. For example,
  ##################
  # verify default options still unchanged
  # 
- ###
 
  $default_options
 
@@ -552,12 +542,14 @@ follow on the next lines as comments. For example,
 
 Running the test script C<Startup.t> verifies
 the requirements for this module.
-
 The C<tmake.pl> cover script for L<Test::STDmaker|Test::STDmaker>
 automatically generated the
 C<Startup.t> test script, C<Startup.d> demo script,
 and C<t::Data::Startup> program module POD,
 from the C<t::Data::Startup> program module contents.
+The C<tmake.pl> cover script automatically ran the
+C<Startup.d> demo script and inserted the results
+into the 'DEMONSTRATION' section above.
 The  C<t::Data::Startup> program module
 is in the distribution file
 F<Data-Startup-$VERSION.tar.gz>.

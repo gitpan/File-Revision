@@ -15,8 +15,8 @@ use Math::BigFloat 1.40;
 use Data::Startup;
 
 use vars qw( $VERSION $DATE $FILE);
-$VERSION = '0.03';
-$DATE = '2004/04/29';
+$VERSION = '0.04';
+$DATE = '2004/05/03';
 $FILE = __FILE__;
 
 use vars qw(@ISA @EXPORT_OK);
@@ -41,19 +41,18 @@ sub new
       ######
       # Make Test variables visible to tech_config
       #  
-      binary_fraction_bytes => 10,
-      extra_decimal_fraction_digits => 5,
-      decimal_fraction_digits => 25,
-      decimal_integer_digits => 20,
-      warnings => 0,
-      die => 0,
       big_int_version => Math::BigInt->config()->{'version'},
       big_float_version => $Math::BigFloat::VERSION,
+      binary_fraction_bytes => 10,
+      decimal_fraction_digits => 25,
+      decimal_integer_digits => 20,
+      die => 0,
+      extra_decimal_fraction_digits => 5,
       version => $VERSION,
+      warnings => 0,
    );
 
 }
-
 
 use SelfLoader;
 
@@ -637,7 +636,7 @@ EVENT:
     elsif($options->{die}) {
         die($event);
     }
-    return (undef,$event);
+    (undef,$event);
 }
 
 
@@ -766,7 +765,7 @@ EVENT:
    elsif($options->{die}) {
        die($event);
    }
-   return (undef,$event);
+   (undef,$event);
    
 }
 
@@ -831,7 +830,7 @@ EVENT:
     elsif($options->{die}) {
         die($event);
     }
-    return (undef,$event);
+    (undef,$event);
 
 }
 
@@ -844,6 +843,9 @@ sub str2float
 {
      shift if UNIVERSAL::isa($_[0],__PACKAGE__);
      return '',() unless @_;
+
+     $default_options = Data::SecsPack->new() unless ref($default_options);
+     my $options = $default_options->override(pop @_) if ref($_[-1]);
 
      #########
      # Drop leading empty strings
@@ -861,41 +863,65 @@ sub str2float
          while ( length($_) ) {
 
              ($sign, $integer,$fraction,$exponent) = ('','','',0);
+
              #######
              # Parse the integer part
              #
-             ($sign,$integer) = ($1,$2) if $_ =~ s/^\s*(-?)\s*([0-9]+)\s*[,;:\n]?//;
+             if($_  =~ s/^\s*(-?)\s*(0[0-7]+|0?b[0-1]+|0x[0-9A-Fa-f]+)\s*[,;\n]?//) {
+                 $integer = 0+oct($1 . $2);
+                 $sign = $1 if $integer =~ s/^\s*-//;
+             }
+             elsif ($_ =~ s/^\s*(-?)\s*([0-9]+)\s*[,;\n]?//) {
+                 ($sign,$integer) = ($1,$2);
+             }
 
              ######
              # Parse the decimal part
              # 
-             $fraction = $1 if $_ =~ s/^\.([0-9]+)\s*[,;:\n]?// ;
+             $fraction = $1 if $_ =~ s/^\.([0-9]+)\s*[,;\n]?// ;
 
              ######
              # Parse the exponent part
-             $exponent = $1 . $2 if $_ =~ s/^E(-?)([0-9]+)\s*[,;:\n]?//;
+             $exponent = $1 . $2 if $_ =~ s/^E(-?)([0-9]+)\s*[,;\n]?//;
 
              goto LAST unless $integer || $fraction || $exponent;
 
-             ############
-             # Normalize decimal float so that there is only one digit to the
-             # left of the decimal point.
-             # 
-             if( $integer ) {
-                 $exponent += length($integer) - 1;
+
+             if($options->{ascii_float} ) {
+                 $integer .= '.' . $fraction if( $fraction);
+                 $integer .= 'E' . $exponent if( $exponent);
+                 push @floats,$sign . $integer;  
              }
              else {
-                 while($fraction && substr($fraction,0,1) == 0) {
-                     $fraction = substr($fraction,1);
+                 ############
+                 # Normalize decimal float so that there is only one digit to the
+                 # left of the decimal point.
+                 # 
+                 while($integer  && substr($integer,0,1) == 0) {
+                    $integer = substr($integer,1);
+                 }
+                 if( $integer ) {
+                     $exponent += length($integer) - 1;
+                 }
+                 else {
+                     while($fraction && substr($fraction,0,1) == 0) {
+                         $fraction = substr($fraction,1);
+                         $exponent--;
+                     }
                      $exponent--;
                  }
-                 $exponent--;
+                 $integer .= $fraction;
+                 while($integer  && substr($integer,0,1) == 0) {
+                    $integer = substr($integer,1);
+                 }
+                 $integer = 0 unless $integer;
+                 push @floats,[$sign . $integer,  $exponent];
              }
-             push @floats,[$sign . $integer . $fraction,  $exponent];
              goto LAST if $early_exit;
          }
          last if $early_exit;
      }
+
 LAST:
      #########
      # Drop leading empty strings
@@ -920,7 +946,7 @@ sub str2int
      unless( wantarray ) {
          return undef unless(defined($_[0]));
          my $str = $_[0];
-         return 0+oct($1) if($str =~ /^\s*(-?\s*0[0-7]+|0?b[0-1]+|0x[0-9A-Fa-f]+)\s*[,;:\n]?$/);
+         return 0+oct($1) if($str =~ /^\s*(-?\s*0[0-7]+|0?b[0-1]+|0x[0-9A-Fa-f]+)\s*[,;\n]?$/);
          return 0+$1 if ($str =~ /^\s*(-?\s*[0-9]+)\s*[,;:\n]?$/ );
          return undef;
      }
@@ -929,6 +955,9 @@ sub str2int
      # Pick up input strings
      #
      return [],() unless @_;
+
+     $default_options = Data::SecsPack->new() unless ref($default_options);
+     my $options = $default_options->override(pop @_) if ref($_[-1]);
      my @strs = @_;
 
      #########
@@ -943,11 +972,11 @@ sub str2int
      my @integers = ();
      foreach $_ (@strs) {
          while ( length($_) ) {
-             if($_  =~ s/^\s*(-?)s\*(0[0-7]+|0?b[0-1]+|0x[0-9A-Fa-f]+)\s*[,;:\n]?//) {
+             if($_  =~ s/^\s*(-?)\s*(0[0-7]+|0?b[0-1]+|0x[0-9A-Fa-f]+)\s*[,;\n]?//) {
                  $int = $1 . $2;
                  $num = 0+oct($int);
              }
-             elsif ($_ =~ s/^\s*(-?)\s*([0-9]+)\s*[,;:\n]?// ) {
+             elsif ($_ =~ s/^\s*(-?)\s*([0-9]+)\s*[,;\n]?// ) {
                  $int = $1 . $2;
                  $num = 0+$int;
  
@@ -980,6 +1009,7 @@ sub str2int
              push @integers,$num;
          }
      }
+
 LAST:
      #########
      # Drop leading empty strings
@@ -1000,12 +1030,10 @@ sub unpack_float
 {
      my $event;
      shift if UNIVERSAL::isa($_[0],__PACKAGE__);
-     $default_options = Data::SecsPack->new() unless ref($default_options);
      unless(defined($_[0])) {
          $event = "No inputs\ntData::SecsPack::float2binary-1\n";
          goto EVENT;
      }
-     my $options = ref($_[-1]) ? $default_options->override( pop @_ ) : $default_options ;
 
      my $format_in = shift;
      unless($format_in eq 'F4' || $format_in eq 'F8') {
@@ -1017,6 +1045,10 @@ sub unpack_float
      my @floats = ();
      my ($binary_magnitude,$sign,$binary_exponent,$decimal_magnitude,$decimal_exponent,$binary_divider);
      my $secsii_floats = shift @_;
+
+     $default_options = Data::SecsPack->new() unless ref($default_options);
+     my $options = $default_options->override(@_);
+
      while ($secsii_floats) {
          @bytes = unpack "C$format_length",$secsii_floats;
          $secsii_floats = substr($secsii_floats,$format_length);
@@ -1070,7 +1102,7 @@ EVENT:
     elsif($options->{die}) {
         die($event);
     }
-    return ($event);
+    $event;
 }
 
 
@@ -1082,15 +1114,13 @@ sub unpack_int
 {
      my $event;
      shift if UNIVERSAL::isa($_[0],__PACKAGE__);
-     $default_options = Data::SecsPack->new() unless ref($default_options);
      unless(defined($_[0])) {
          $event = "No inputs\ntData::SecsPack::float2binary-1\n";
          goto EVENT;
      }
-     my $options = ref($_[-1]) ? $default_options->override(pop @_ ) : $default_options ;
 
      my $format_in = shift;
-     unless($format_in =~ /(T|U1|U2|U4|S1|S2|S4)/) {
+     unless($format_in =~ /(T|U1|U2|U4|U8|S1|S2|S4|S8)/) {
          $event = "Format $format_in not supported.\n\tData::SecsPack::unpack_int-2\n";
          goto EVENT;
      }
@@ -1100,6 +1130,10 @@ sub unpack_int
      my ($twos_complement, @bytes, $int);
      my @integers = ();
      my $secsii_ints = shift @_;
+
+     $default_options = Data::SecsPack->new() unless ref($default_options);
+     my $options = $default_options->override(@_);
+
      if($signed) {
          $twos_complement = Math::BigInt->new(1)->blsft($format_length << 3);
      }
@@ -1167,49 +1201,29 @@ Data::SecsPack - pack and unpack numbers in accordance with SEMI E5-94
  $old_value = config( $option );
  $old_value = config( $option => $new_value);
 
- ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent); 
  ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent, @options); 
- ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent, [@options]); 
- ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent, {@options}); 
  
- ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent);
  ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent, @options);
- ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent, [@options]);
- ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent, {@options});
 
  @bytes = int2bytes( $big_integer );
 
- ($format, $floats) = pack_float($format, @string_floats);
- ($format, $floats) = pack_float($format, @string_floats, {@options});
+ ($format, $floats) = pack_float($format, @string_floats, [@options]);
 
- ($format, $integers) = pack_int($format, @string_integers);
  ($format, $integers) = pack_int($format, @string_integers, [@options]);
- ($format, $integers) = pack_int($format, @string_integers, {@options});
 
- ($format, $numbers, @string) = pack_num($format, @strings);
  ($format, $numbers, @string) = pack_num($format, @strings, [@options]);
- ($format, $numbers, @string) = pack_num($format, @strings, {@options});
 
- $float = str2float($string);
- (\@strings, @floats) = str2float(@strings);
+ $float = str2float($string, [@options]);
+ (\@strings, @floats) = str2float(@strings, [@options]);
 
- $integer = str2int($string);
- (\@strings, @integers) = str2int(@strings);
+ $integer = str2int($string, [@options]);
+ (\@strings, @integers) = str2int(@strings, [@options]);
 
- \@ingegers = unpack_int($format, $integer_string);
  \@ingegers = unpack_int($format, $integer_string, @options);
- \@ingegers = unpack_int($format, $integer_string, [@options]);
- \@ingegers = unpack_int($format, $integer_string, {@options});
 
- \@floats   = unpack_float($format, $float_string); 
  \@floats   = unpack_float($format, $float_string, @options); 
- \@floats   = unpack_float($format, $float_string, [@options]); 
- \@floats   = unpack_float($format, $float_string, {@options}); 
 
- \@numbers  = unpack_num($format, $number_string); 
  \@numbers  = unpack_num($format, $number_string), @options; 
- \@numbers  = unpack_num($format, $number_string, [@options]); 
- \@numbers  = unpack_num($format, $number_string, {@options}); 
 
  #####
  # Class, Object interface
@@ -1218,57 +1232,42 @@ Data::SecsPack - pack and unpack numbers in accordance with SEMI E5-94
  #
  use Data::SecsPack;
 
- $secspack = 'Data::SecsPack'  # uses built-in config object
+ $secspack = 'Data::SecsPack';  # uses built-in config object
 
  $secspack = new Data::SecsPack(@options);
- $secspack = new Data::SecsPack([@options]);
- $secspack = new Data::SecsPack({@options});
 
  $big_integer = bytes2int( @bytes );
 
- ($binary_magnitude, $binary_exponent) = $secspack->float2binary($magnitude, $exponent); 
  ($binary_magnitude, $binary_exponent) = $secspack->float2binary($magnitude, $exponent, @options); 
- ($binary_magnitude, $binary_exponent) = $secspack->float2binary($magnitude, $exponent, [@options]); 
- ($binary_magnitude, $binary_exponent) = $secspack->float2binary($magnitude, $exponent, {@options}); 
 
- ($binary_magnitude, $binary_exponent) = $secspack->ifloat2binary($imagnitude, $iexponent);
  ($binary_magnitude, $binary_exponent) = $secspack->ifloat2binary($imagnitude, $iexponent, @options);
- ($binary_magnitude, $binary_exponent) = $secspack->ifloat2binary($imagnitude, $iexponent, [@options]);
- ($binary_magnitude, $binary_exponent) = $secspack->ifloat2binary($imagnitude, $iexponent, {@options});
 
  @bytes = $secspack->int2bytes( $big_integer );
 
- ($format, $floats) = $secspack->pack_float($format, @string_integers);
- ($format, $floats) = $secspack->pack_float($format, @string_integers, {@options});
+ ($format, $floats) = $secspack->pack_float($format, @string_integers, [@options]);
 
- ($format, $integers) = $secspack->pack_int($format, @string_integers);
  ($format, $integers) = $secspack->pack_int($format, @string_integers, [@options]);
- ($format, $integers) = $secspack->pack_int($format, @string_integers, {@options});
-
- ($format, $numbers, @strings) = $secspack->pack_num($format, @strings);
+ 
  ($format, $numbers, @strings) = $secspack->pack_num($format, @strings, [@options]);
- ($format, $numbers, @strings) = $secspack->pack_num($format, @strings, {@options});
 
- $integer = $secspack->str2int($string)
- (\@strings, @integers) = $secspack->str2int(@strings);
+ $integer = $secspack->str2int($string, [@options])
+ (\@strings, @integers) = $secspack->str2int(@strings, [@options]);
 
- $float = $secspack->str2float($string);
- (\@strings, @floats) = $secspack->str2float(@strings);
+ $float = $secspack->str2float($string, [@options]);
+ (\@strings, @floats) = $secspack->str2float(@strings, [@options]);
 
- \@ingegers = $secspack->unpack_int($format, $integer_string); 
  \@ingegers = $secspack->unpack_int($format, $integer_string, @options); 
- \@ingegers = $secspack->unpack_int($format, $integer_string, [@options]); 
- \@ingegers = $secspack->unpack_int($format, $integer_string, {@options}); 
 
- \@floats   = $secspack->unpack_float($format, $float_string); 
  \@floats   = $secspack->unpack_float($format, $float_string, @options); 
- \@floats   = $secspack->unpack_float($format, $float_string, [@options]); 
- \@floats   = $secspack->unpack_float($format, $float_string, {@options}); 
 
- \@numbers  = $secspack->unpack_num($format, $number_string); 
  \@numbers  = $secspack->unpack_num($format, $number_string, @options); 
- \@numbers  = $secspack->unpack_num($format, $number_string, [@options]); 
- \@numbers  = $secspack->unpack_num($format, $number_string, {@options}); 
+ 
+Generally, if a subroutine will process a list of options, C<@options>,
+that subroutine will also process an array reference, C<\@options>, C<[@options],
+or hash reference, C<\%options>, C<{@options}.
+If a subroutine will process an array reference, C<\@options>, C<[@options]>,
+that subroutine will also process a hash reference, C<\%options>, C<{@options}>.
+See the description for a subroutine for details and exceptions.
 
 =head1 DESCRIPTION
 
@@ -1311,7 +1310,7 @@ So unless you dig them out, you will never know they exist.
 While RFC and military standards may be freely copyied,
 industry standards are usually copyrighted.
 This means if you want to read the standard,
-you have pay whatever the market bears.
+you have to pay whatever the market bears.
 ISO standards, SEMI stardards, American National Standards,
 IEEE standards beside being boring are expensive.
 In other words, you do not see them flying out the door at
@@ -1357,7 +1356,8 @@ Big ticket, multi-million dollar fab equipment has to
 work to earn its keep. And, then there is the everyday
 business of suiting up, with humblizing hair nets,
 going through air and other
-showers just to get in to the clean room.
+showers with your favorite or not so favorite co-worker
+just to get into the clean room.
 And make sure not to do anything that will scatch a wafer
 with a lot of Intel Pentiums on them.
 It is totally amazing that the product does
@@ -1648,7 +1648,7 @@ The options are as follows:
                decimal_fraction_digits       
                binary_fraction_bytes
 
- str2float
+ str2float     ascii_float                      0 1
  str2int 
  unpack_float
  unpack_int
@@ -1677,7 +1677,10 @@ fraudulent versions.
 
 =head2 float2binary
 
+ ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent); 
  ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent, @options); 
+ ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent, [@options]); 
+ ($binary_magnitude, $binary_exponent) = float2binary($magnitude, $exponent, {@options}); 
 
 The C<ifloat2binary> subroutine converts a decimal float with a base ten
 C<$magnitude> and C<$exponent> to a binary float
@@ -1723,7 +1726,10 @@ cannot process the decimal exponent.
 
 =head2 ifloat2binary
  
+ ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent);
  ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent, @options);
+ ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent, [@options]);
+ ($binary_magnitude, $binary_exponent) = ifloat2binary($imagnitude, $iexponent, {@options});
 
 The C<$ifloat2binary> subroutine converts a decimal float with a base ten
 C<$imagnitude> and C<$iexponent> using the C<Math::BigInt> program
@@ -1906,6 +1912,8 @@ with the options saved in C<secspack>.
 =head2 pack_float
 
  ($format, $floats) = pack_float($format, @string_integers);
+ ($format, $floats) = pack_float($format, @string_integers, [@options]);
+ ($format, $floats) = pack_float($format, @string_integersm {@options});
 
 The C<pack_float> subroutine takes an array of strings, <@string_integers>,
 and a float format code, as specifed in the above C<Item Format Code Table>,
@@ -1939,6 +1947,8 @@ cannot continue processing.
 =head2 pack_int
 
  ($format, $integers) = pack_int($format, @string_integers);
+ ($format, $integers) = pack_int($format, @string_integers, [@options]);
+ ($format, $integers) = pack_int($format, @string_integers, {options});
 
 The C<pack_int> subroutine takes an array of strings, <@string_integers>,
 and a format code, as specifed in the above C<Item Format Code Table>
@@ -1969,6 +1979,8 @@ cannot continue processing.
 =head2 pack_num
 
  ($format, $numbers, @strings) = pack_num($format, @strings);
+ ($format, $numbers, @strings) = pack_num($format, @strings, [@options]);
+ ($format, $numbers, @strings) = pack_num($format, @strings, {@options});
 
 The C<pack_num> subroutine takes leading numbers in C<@strings> and
 packs them in the C<$format> in accordance with C<SEMI E5-94>.
@@ -2021,7 +2033,12 @@ cannot continue processing.
 =head2 str2float
 
  $float = str2float($string);
+ $float = str2float($string, [@options]);
+ $float = str2float($string, {@options});
+
  (\@strings, @floats) = str2float(@strings);
+ (\@strings, @floats) = str2float(@strings, [@options]);
+ (\@strings, @floats) = str2float(@strings, {@options});
 
 The C<str2float> subroutine, in an array context, supports converting multiple run of
 integers, decimals or floats in an array of strings C<@strings> to an array
@@ -2029,7 +2046,12 @@ of integers, decimals or floats, C<@floats>.
 It keeps converting the strings, starting with the first string in C<@strings>,
 continuing to the next and next until it fails an conversion.
 The C<str2int> returns the stripped string data, naked of all integers,
-in C<@strings> and the array of integers C<@integers>.
+in C<@strings> and the array of floats C<@floats>.
+For the C<ascii_float> option, the members of the C<@floats> are scalar
+strings of the float numbers; otherwise, the members are a reference
+to an array of C<[$decimal_magnitude, $decimal_exponent]> where the decimal
+point is set so that there is one decimal digit to the right of the decimal
+point for $decimal_magnitude.
 
 In a scalar context, it parse out any type of $number in the leading C<$string>.
 This is especially useful for C<$string> that is certain to have a single number.
@@ -2037,7 +2059,12 @@ This is especially useful for C<$string> that is certain to have a single number
 =head2 str2int
 
  $integer = str2int($string);
+ $integer = str2int($string, [@options]);
+ $integer = str2int($string, {@options});
+
  (\@strings, @integers) = str2int(@strings); 
+ (\@strings, @integers) = str2int(@strings, [@options]); 
+ (\@strings, @integers) = str2int(@strings, {@options}); 
 
 In a scalar context,
 the C<Data::SecsPack> program module translates an scalar string to a scalar integer.
@@ -2087,6 +2114,9 @@ the array of integers C<@integers>.
 =head2 unpack_float
 
  \@floats   = unpack_float($format, $float_string);
+ \@floats   = unpack_float($format, $float_string, @options);
+ \@floats   = unpack_float($format, $float_string, [@options]);
+ \@floats   = unpack_float($format, $float_string, {@options});
 
 The C<unpack_num> subroutine unpacks an array of floats C<$float_string>
 packed in accordance with SEMI-E5 C<$format>. 
@@ -2111,6 +2141,9 @@ check that C<ref> of the return exists or is 'C<ARRAY>'.
 =head2 unpack_int
 
  \@integers = unpack_int($format, $integer_string); 
+ \@integers = unpack_int($format, $integer_string, @options); 
+ \@integers = unpack_int($format, $integer_string, [@options]); 
+ \@integers = unpack_int($format, $integer_string, {@options}); 
 
 The C<unpack_num> subroutine unpacks an array of numbers C<$string_numbers>
 packed in accordance with SEMI-E5 C<$format>. 
@@ -2139,9 +2172,12 @@ check that C<ref> of the return exists or is 'C<ARRAY>'.
 =head2 unpack_num
 
  \@numbers  = unpack_num($format, $number_string); 
+ \@numbers  = unpack_num($format, $number_string, @options); 
+ \@numbers  = unpack_num($format, $number_string, [@options]); 
+ \@numbers  = unpack_num($format, $number_string, {@options}); 
 
 The C<unpack_num> subroutine unpacks an array of numbers C<$number_string>
-packed in accordance with SEMI-E5 C<$format>. 
+packed in accordance with SEMI E5-94 C<$format>. 
 A valid C<$format>, in accordance with the above C<Item Format Code Table>,
 is C<S1 S2 S4 U1 U2 U4 F4 F8 T>.
 The C<unpack_num> subroutine uses either C<unpack_float> or C<unpack_int>
@@ -2151,7 +2187,8 @@ The C<pack_num> subroutine does not generate any events
 but the subroutine does pass on any C<pack_int> and C<pack_float> events,
 returning them as a string.
 The C<unpack_num> subroutine, thus, returns a reference, C<\@numbers>, to the unpacked number array
-or scalar error message C<$event>. To determine a valid return or an error,
+or scalar error message C<$event>. 
+To determine a valid return or an error,
 check that C<ref> of the return exists or is 'C<ARRAY>'.
 
 =head1 REQUIREMENTS
@@ -2161,1468 +2198,297 @@ Coming.
 =head1 DEMONSTRATION
 
  #########
- # perl SecsPackStress.d
+ # perl SecsPack.d
  ###
 
- ~~~~~~ Demonstration overview ~~~~~
-
-Perl code begins with the prompt
-
- =>
-
-The selected results from executing the Perl Code 
-follow on the next lines. For example,
-
- => 2 + 2
- 4
-
- ~~~~~~ The demonstration follows ~~~~~
-
- =>     use File::Package;
- =>     my $fp = 'File::Package';
-
- =>     my $uut = 'Data::SecsPack';
- =>     my $loaded;
-
- =>     ########
- =>     # Force scalar or array context
- =>     #
- =>     my ($result,@result);
-
- => ##################
- => # UUT Loaded
- => # 
- => ###
-
- =>    my $errors = $fp->load_package($uut, 
- =>        qw(bytes2int float2binary 
- =>           ifloat2binary int2bytes   
- =>           pack_float pack_int pack_num  
- =>           str2float str2int 
- =>           unpack_float unpack_int unpack_num) );
- => $errors
- ''
-
- =>  my @bytes_test =  (
-
- =>     #  $integer                       @bytes 
- =>     #----------------------------------------------
- =>     [ '32767'                       , 127,255,                              ],
- =>     [ '32768'                       , 128,  0,                              ],
- =>     [ '123456789123456789123456789' , 102,30,253,242,227,177,159,124,4,95,21],
- =>  
- =>   );
-
- =>   my ($string, $integer, @bytes) = ('',());
- =>   foreach (@bytes_test) {
- =>      ($integer,@bytes) = @$_;
-
- => ##################
- => # int2bytes(\"$integer\")
- => # 
- => ###
-
- => [int2bytes("$integer")]
- [
-           '127',
-           '255'
-         ]
-
- => ##################
- => # bytes2int(\"$integer\")
- => # 
- => ###
-
- => $string = bytes2int(@bytes)
- => "$string"
- '32767'
-
- =>      
- =>   };
-
- => ##################
- => # int2bytes(\"$integer\")
- => # 
- => ###
-
- => [int2bytes("$integer")]
- [
-           '128',
-           '0'
-         ]
-
- => ##################
- => # bytes2int(\"$integer\")
- => # 
- => ###
-
- => $string = bytes2int(@bytes)
- => "$string"
- '32768'
-
- =>      
- =>   };
-
- => ##################
- => # int2bytes(\"$integer\")
- => # 
- => ###
-
- => [int2bytes("$integer")]
- [
-           '102',
-           '30',
-           '253',
-           '242',
-           '227',
-           '177',
-           '159',
-           '124',
-           '4',
-           '95',
-           '21'
-         ]
-
- => ##################
- => # bytes2int(\"$integer\")
- => # 
- => ###
-
- => $string = bytes2int(@bytes)
- => "$string"
- '123456789123456789123456789'
-
- =>      
- =>   };
- =>  ##############
- =>  # Negative values are special case that Math::BigInt
- =>  # did not handle well before version 1.50
- =>  # 
- =>  @bytes_test =  (
-
- =>     #  $integer        @bytes 
- =>     #----------------------------------------------
- =>     [  -32767      ,   128,   1,                  ],
- =>     [  -32768      ,   128,   0,                  ],
- =>     
- =>   );
-
- =>   foreach (@bytes_test) {
- =>      ($integer,@bytes) = @$_;
-
- => ##################
- => # int2bytes(\"$integer\")
- => # 
- => ###
-
- => [int2bytes("$integer")]
- [
-           '128',
-           '1'
-         ]
-
- =>      
- =>   };
-
- => ##################
- => # int2bytes(\"$integer\")
- => # 
- => ###
-
- => [int2bytes("$integer")]
- [
-           '128',
-           '0'
-         ]
-
- =>      
- =>   };
- =>  sub binary2hex
- =>  {
- =>      my $magnitude = shift;
- =>      my $sign = $magnitude =~ s/^(\-)\s*// ? $1 : ''; 
- =>      $magnitude =  unpack 'H*',pack('C*', int2bytes($magnitude));
- =>      "$sign$magnitude";
- =>  };
-
- =>  my @ifloat_test =  (
- =>     #      test               expected
- =>     # --------------------    ------------------------------    
- =>     # magnitude     exp       magnitude                  exp 
- =>     #--------------------------------------------------------
- =>     [           5 ,   -1,      '010000'                  , -1 ],
- =>     [    59101245 ,   -1,      '012e992f108ec37cc1f27e00', -1 ],
- =>     [        3125 ,   -2,      '010000'                  , -5 ],
- =>     [         105 ,    1,      '01500000'                ,  3 ],
- =>     [        -105 ,    1,     '-01500000'                ,  3 ],
- =>     [        -105 ,   -1,     '-01ae147ae147ae147ae14000', -4 ],
- =>     
- =>   );
-
- =>   my (@ifloats, $ifloat_name, 
- =>      $ifloat_test_mag, $ifloat_test_exp, $ifloat_expected_mag, $ifloat_expected_exp );
-
- => ########
- => # Start of the floating point test loop
- => # 
- => #
- => foreach(@ifloat_test) {
-
- =>   ($ifloat_test_mag, $ifloat_test_exp, $ifloat_expected_mag, $ifloat_expected_exp ) = @$_;
- =>   $ifloat_name = "ifloat2binary($ifloat_test_mag, $ifloat_test_exp)";
-
- => ##################
- => # $ifloat_name magnitude
- => # 
- => ###
-
- => @ifloats = ifloat2binary($ifloat_test_mag,$ifloat_test_exp)
- => binary2hex($ifloats[0])
- '010000'
-
- => ##################
- => # $ifloat_name exponent
- => # 
- => ###
-
- => $ifloats[1]
- '-1'
-
- => };
-
- => ##################
- => # $ifloat_name magnitude
- => # 
- => ###
-
- => @ifloats = ifloat2binary($ifloat_test_mag,$ifloat_test_exp)
- => binary2hex($ifloats[0])
- '012e992f108ec37cc1f27e00'
-
- => ##################
- => # $ifloat_name exponent
- => # 
- => ###
-
- => $ifloats[1]
- '-1'
-
- => };
-
- => ##################
- => # $ifloat_name magnitude
- => # 
- => ###
-
- => @ifloats = ifloat2binary($ifloat_test_mag,$ifloat_test_exp)
- => binary2hex($ifloats[0])
- '010000'
-
- => ##################
- => # $ifloat_name exponent
- => # 
- => ###
-
- => $ifloats[1]
- '-5'
-
- => };
-
- => ##################
- => # $ifloat_name magnitude
- => # 
- => ###
-
- => @ifloats = ifloat2binary($ifloat_test_mag,$ifloat_test_exp)
- => binary2hex($ifloats[0])
- '01500000'
-
- => ##################
- => # $ifloat_name exponent
- => # 
- => ###
-
- => $ifloats[1]
- '3'
-
- => };
-
- => ##################
- => # $ifloat_name magnitude
- => # 
- => ###
-
- => @ifloats = ifloat2binary($ifloat_test_mag,$ifloat_test_exp)
- => binary2hex($ifloats[0])
- '-01500000'
-
- => ##################
- => # $ifloat_name exponent
- => # 
- => ###
-
- => $ifloats[1]
- '3'
-
- => };
-
- => ##################
- => # $ifloat_name magnitude
- => # 
- => ###
-
- => @ifloats = ifloat2binary($ifloat_test_mag,$ifloat_test_exp)
- => binary2hex($ifloats[0])
- '-01ae147ae147ae147ae14000'
-
- => ##################
- => # $ifloat_name exponent
- => # 
- => ###
-
- => $ifloats[1]
- '-4'
-
- => };
- =>   ###################
- =>   #   F4 Not Rounded  
- =>   # 
- =>   #                                (without implied 1)          implied 1
- =>   #   Test       sign  exponent    significant                  hex               
- =>   #
- =>   #    10.5       1    100 0001 0  0101 0000 0000 0000 0000 000 500000
- =>   #   -10.5       1    100 0001 0  0101 0000 0000 0000 0000 000 500000
- =>   #   63.54       0    100 0010 0  1111 1100 0101 0001 1110 101 fc51ea 
- =>   #   63.54E64    0    111 1111 1  0000 0000 0000 0000 0000 000 000000
- =>   #   63.54E36    0    111 1110 0  0111 1110 0110 1010 1101 111 7e6ade
- =>   #   63.54E-36   0    000 0110 1  0101 0001 1101 0110 0010 101 51d62a
- =>   #  -63.54E-36   1    000 0110 1  0101 0001 1101 0110 0010 101 51d62a 
- =>   #  -63.54E-306  1    000 0000 0  0000 0000 0000 0000 0000 000 000000
- =>   #   0           0    000 0000 0  0000 0000 0000 0000 0000 000 000000
- =>   #  -0           1    000 0000 0  0000 0000 0000 0000 0000 000 000000
- =>   #
- =>   #                                 2**x    significant 
- =>   #   Test         Hex        sign exponent hex    decimal
- =>   #   5.E-1
- =>   #   5.9101245E-1
- =>   #   3.125E-2
- =>   #    10.5        4128 0000   0         3  500000 1.3125
- =>   #   -10.5        C128 0000   1         3  500000 1.3125
- =>   #   63.54        427E 28F5   0         5  fc51ea 1.9856249
- =>   #   63.54E64     7F80 0000   0       128  000000 1.0        (infinity) 
- =>   #   63.54E36     7E3F 356F   0       125  7e6ade 1.4938182    
- =>   #   63.54E-36    06A8 EB15   0      -114  51d62a 1.3196741 
- =>   #  -63.54E-36    86A8 EB15   1      -114  51d62a 1.3196741
- =>   #  -63.54E-306   8000 0000   1      -127  000000 1.0        (underflow)
- =>   #  -63.54E306    7F80 0000   1       128  000000 1.0        (infinity)
- =>   #   0            0000 0000   1      -127  000000 1.0 
- =>   #  -0            8000 0000   1      -127  000000 1.0
- =>   # 
- =>   #   F8 Not Rounded 
- =>   #                                            2**x 
- =>   #   Test         Hex                sign exponent significant
- =>   #   5.E-1
- =>   #   5.9101245E-1
- =>   #   3.125E-2
- =>   #    10.5        4025 0000 0000 0000 0         3  1.3125   
- =>   #   -10.5        C025 0000 0000 0000 1         3  1.3125
- =>   #   63.54        404F C51E B851 EB85 0         5  1.9856249
- =>   #   63.54E64     4D98 2249 9022 2814 0       218  1.5083709364139440 
- =>   #   63.54E36     47C7 E6AD EF57 89B0 0       125  1.4938182210249628
- =>   #   63.54E-36    38D5 1D62 A97A 8965 0      -114  1.3196741695652118
- =>   #  -63.54E-36    B8D5 1D62 A97A 8965 1      -114  1.3196741695652118
- =>   #  -63.54E-306   80C6 4F45 661E 6296 1     -1011  1.3943532933246040
- =>   #   63.54E306    7FD6 9EF9 420B C99B 1      1022  1.4138119296954758
- =>   #   0            0000 0000 0000 0000 0     -1023  1.0
- =>   #  -0            8000 0000 0000 0000 1     -1023  1.0
- =>   #
- =>   #
- =>  my $float_msg1 = "F4 exponent overflow\n\tData::SecsPack::pack_float-3\n";
- =>  my $float_msg2 = "F4 exponent underflow\n\tData::SecsPack::pack_float-4\n";
-
- =>  my @float_test =  (
- =>     # pack float in       expected pack                                expected unpack
- =>     # --------------     ---------------- -----------------------   -----------------------------------------------
- =>     # magnitude  exp     F4 pack           F8 pack                     F4 unpack                     F8 unpack 
- =>     #-------------------------------------------------------------------------------------------------------------
- =>      [  '105'  ,    '1', 'F4' ,  '41280000', 'F8', '4025000000000000',  '1.05E1'                   ,  '1.0500000000000031225E1'   ],
- =>      [ '-105'  ,    '1', 'F4' ,  'c1280000', 'F8', 'c025000000000000', '-1.05E1'                   , '-1.0500000000000031225E1'   ],
- =>      [  '6354' ,    '1', 'F4' ,  '427e28f5', 'F8', '404fc51eb851eb85',  '6.3539997100830078125E1'  ,  '6.3540000000000393082E1'   ],
- =>      [  '6354' ,   '65', undef, $float_msg1, 'F8', '4d98224990222622',  ''                         ,  '6.3539999999995605128E65'  ],
- =>      [  '6354' ,   '37', 'F4',   '7e3f356f', 'F8', '47c7e6adef5788f6',  '6.3539997568971820731E37' ,  '6.3539999999998501444E37'  ],
- =>      [  '6354' ,  '-35', 'F4',   '06a8eb15', 'F8', '38d51d62a97a8a86',  '6.3539998299848930747E-35',  '6.3540000000003286544E-35' ],
- =>      [ '-6354' ,  '-35', 'F4',   '86a8eb15', 'F8', 'b8d51d62a97a8a86', '-6.3539998299848930747E-35', '-6.3540000000003286544E-35' ],
- =>      [ '-6354' , '-305', undef, $float_msg2, 'F8', '80c64f45661e6e8f',  ''                         , '-6.3540000000031236507E-305'],
- =>      [ ' 6354' ,  '307', undef, $float_msg1, 'F8', '7fd69ef9420bbdfc',  ''                         ,  '6.3539999999970548993E307' ],
- =>      [     '0' ,    '0', 'F4',   '00000000', 'F8', '0000000000000000',  '5.8774717541114375398E-39',  '1.1125369292536006915E-308'],
- =>      [    '-0' ,    '0', 'F4',   '80000000', 'F8', '8000000000000000', '-5.8774717541114375398E-39', '-1.1125369292536006915E-308'],
- =>   );
-
- => my $F4_criteria = 1E-4;
- => my $F8_criteria = 1E-4;
-
- => #######
- => # Loop the above values for both a F4 and F8 conversions
- => #
- => my ($float_int, $float_frac, $float_exp, $f4_float_hex, $f8_float_hex);
- => my ($f4_format, $f8_format, $f4_float, $f8_float, $format, $numbers);
-
- => ########
- => # Start of the floating point test loop
- => # 
- => #
- => foreach $_ (@float_test) {
-
- =>   ($float_int, $float_exp, $f4_format, $f4_float_hex, $f8_format, $f8_float_hex,  $f4_float, $f8_float) = @$_;
-
- => #####
- => # Filling in the above values in the tests
- => #
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '41280000'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '1.05E1'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '4025000000000000'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '1.0500000000000031225E1'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- 'c1280000'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '-1.05E1'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- 'c025000000000000'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '-1.0500000000000031225E1'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '427e28f5'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '6.3539997100830078125E1'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '404fc51eb851eb85'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '6.3540000000000393082E1'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- undef
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => $numbers
- 'F4 exponent overflow
- 	Data::SecsPack::pack_float-3
- '
-
- => }
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '4d98224990222622'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '6.3539999999995605128E65'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '7e3f356f'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '6.3539997568971820731E37'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '47c7e6adef5788f6'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '6.3539999999998501444E37'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '06a8eb15'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '6.3539998299848930747E-35'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '38d51d62a97a8a86'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '6.3540000000003286544E-35'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '86a8eb15'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '-6.3539998299848930747E-35'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- 'b8d51d62a97a8a86'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '-6.3540000000003286544E-35'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- undef
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => $numbers
- 'F4 exponent underflow
- 	Data::SecsPack::pack_float-4
- '
-
- => }
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '80c64f45661e6e8f'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '-6.3540000000031236507E-305'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- undef
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => $numbers
- 'F4 exponent overflow
- 	Data::SecsPack::pack_float-3
- '
-
- => }
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '7fd69ef9420bbdfc'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '6.3539999999970548993E307'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '00000000'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '5.8774717541114375398E-39'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '0000000000000000'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '1.1125369292536006915E-308'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F4', [$float_int,$float_exp])
- => $format
- 'F4'
-
- =>  ##########
- =>  # If pack was successful
- =>  # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F4', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '80000000'
-
- => ##################
- => # unpack_float('F4',$f4_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F4',$numbers)}[0]
- '-5.8774717541114375398E-39'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    else {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) format
- => # 
- => ###
-
- => ($format, $numbers) = pack_float('F8', [$float_int,$float_exp])
- => $format
- 'F8'
-
- =>    ##############
- =>    # Pack was successful
- =>    # 
- =>    if($format) {
-
- => ##################
- => # pack_float('F8', [$float_int,$float_exp]) float
- => # 
- => ###
-
- => unpack('H*', $numbers)
- '8000000000000000'
-
- => ##################
- => # unpack_float('F8',$f8_float_hex) float
- => # 
- => ###
-
- => ${unpack_float('F8',$numbers)}[0]
- '-1.1125369292536006915E-308'
-
- =>    }
-
- =>    #########
- =>    # otherwise, pack failed, test for error message
- =>    #
- =>    else {
- =>     
- =>  my @pack_int_test =  (
- =>    [                                                           
- =>      ['78 45 25', '512 1024 hello world']                   ,  # test_strings
- =>      'I'                                                    ,  # test_format
- =>      'U2'                                                   ,  # expected_format
- =>      '004e002d001902000400'                                 ,  # expected_numbers  
- =>      ['hello world']                                        ,  # expected_strings  
- =>      [78, 45, 25, 512, 1024]                                ,  # expected_unpack      
- =>    ],
-
- =>    [
- =>      ['-78 45 -25', 'world']                                ,  # test_strings
- =>      'I'                                                    ,  # test_format
- =>      'S1'                                                   ,  # expected_format
- =>      'b22de7'                                               ,  # expected_numbers  
- =>      ['world']                                              ,  # expected_strings  
- =>      [-78, 45, -25]                                         ,  # expected_unpack      
- =>    ],
-
- =>    [
- =>      ['-128 128 -127 127']                                  ,  # test_strings
- =>      'I'                                                    ,  # test_format
- =>      'S2'                                                   ,  # expected_format
- =>      'ff800080ff81007f'                                     ,  # expected_numbers  
- =>      ['']                                                   ,  # expected_strings  
- =>      [-128, 128, -127, 127]                                 ,  # expected_unpack      
- =>    ],
-
- =>    [
- =>      ['-32768 32768 -32767 32767']                          ,  # test_strings
- =>      'I'                                                    ,  # test_format
- =>      'S4'                                                   ,  # expected_format
- =>      'ffff800000008000ffff800100007fff'                     ,  # expected_numbers                                                     ,  # expected_numbers  
- =>      ['']                                                   ,  # expected_strings  
- =>      [-32768,32768,-32767,32767]                            ,  # expected_unpack      
- =>    ],
-
- => );
-
- =>     my ($test_strings, @test_strings,$test_string_text,$test_format, $expected_format,
- =>         $expected_numbers,$expected_strings, $expected_unpack);
-
- =>     my (@strings);
-
- => ########
- => # Start of the pack int test loop
- => # 
- => #
- => foreach $_ (@pack_int_test) {
-
- =>     ($test_strings,$test_format, $expected_format,
- =>         $expected_numbers,$expected_strings, $expected_unpack) = @$_;
-
- =>      @test_strings = @$test_strings;
- =>      $test_string_text = join ' ',@test_strings;
-
- => ##################
- => # pack_num($test_format, $test_string_text) format
- => # 
- => ###
-
- => ($format, $numbers, @strings) = pack_num('I',@test_strings)
- => $format
- 'U2'
-
- => ##################
- => # pack_num($test_format, $test_string_text) numbers
- => # 
- => ###
-
- => unpack('H*',$numbers)
- '004e002d001902000400'
-
- => ##################
- => # pack_num($test_format, $test_string_text) \@strings
- => # 
- => ###
-
- => [@strings]
- [
-           'hello world'
-         ]
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) error check
- => # 
- => ###
-
- => ref(my $unpack_numbers = unpack_num($expected_format,$numbers))
- 'ARRAY'
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) numbers
- => # 
- => ###
-
- => $unpack_numbers
- [
-           '78',
-           '45',
-           '25',
-           '512',
-           '1024'
-         ]
-
- =>  ######
- =>  # End of the pack int Test Loop
- =>  #######
-
- =>  };
-
- => ##################
- => # pack_num($test_format, $test_string_text) format
- => # 
- => ###
-
- => ($format, $numbers, @strings) = pack_num('I',@test_strings)
- => $format
- 'S1'
-
- => ##################
- => # pack_num($test_format, $test_string_text) numbers
- => # 
- => ###
-
- => unpack('H*',$numbers)
- 'b22de7'
-
- => ##################
- => # pack_num($test_format, $test_string_text) \@strings
- => # 
- => ###
-
- => [@strings]
- [
-           'world'
-         ]
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) error check
- => # 
- => ###
-
- => ref(my $unpack_numbers = unpack_num($expected_format,$numbers))
- 'ARRAY'
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) numbers
- => # 
- => ###
-
- => $unpack_numbers
- [
-           '-78',
-           '45',
-           '-25'
-         ]
-
- =>  ######
- =>  # End of the pack int Test Loop
- =>  #######
-
- =>  };
-
- => ##################
- => # pack_num($test_format, $test_string_text) format
- => # 
- => ###
-
- => ($format, $numbers, @strings) = pack_num('I',@test_strings)
- => $format
- 'S2'
-
- => ##################
- => # pack_num($test_format, $test_string_text) numbers
- => # 
- => ###
-
- => unpack('H*',$numbers)
- 'ff800080ff81007f'
-
- => ##################
- => # pack_num($test_format, $test_string_text) \@strings
- => # 
- => ###
-
- => [@strings]
- [
-           ''
-         ]
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) error check
- => # 
- => ###
-
- => ref(my $unpack_numbers = unpack_num($expected_format,$numbers))
- 'ARRAY'
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) numbers
- => # 
- => ###
-
- => $unpack_numbers
- [
-           '-128',
-           '128',
-           '-127',
-           '127'
-         ]
-
- =>  ######
- =>  # End of the pack int Test Loop
- =>  #######
-
- =>  };
-
- => ##################
- => # pack_num($test_format, $test_string_text) format
- => # 
- => ###
-
- => ($format, $numbers, @strings) = pack_num('I',@test_strings)
- => $format
- 'S4'
-
- => ##################
- => # pack_num($test_format, $test_string_text) numbers
- => # 
- => ###
-
- => unpack('H*',$numbers)
- 'ffff800000008000ffff800100007fff'
-
- => ##################
- => # pack_num($test_format, $test_string_text) \@strings
- => # 
- => ###
-
- => [@strings]
- [
-           ''
-         ]
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) error check
- => # 
- => ###
-
- => ref(my $unpack_numbers = unpack_num($expected_format,$numbers))
- 'ARRAY'
-
- => ##################
- => # unpack_num($expected_format, $test_string_text) numbers
- => # 
- => ###
-
- => $unpack_numbers
- [
-           '-32768',
-           '32768',
-           '-32767',
-           '32767'
-         ]
-
- =>  ######
- =>  # End of the pack int Test Loop
- =>  #######
-
- =>  };
+~~~~~~ Demonstration overview ~~~~~
+
+The results from executing the Perl Code 
+follow on the next lines as comments. For example,
+
+ 2 + 2
+ # 4
+
+~~~~~~ The demonstration follows ~~~~~
+
+     use File::Package;
+     my $fp = 'File::Package';
+
+     my $uut = 'Data::SecsPack';
+     my $loaded;
+
+     #####
+     # Provide a scalar or array context.
+     #
+     my ($result,@result);
+
+ ##################
+ # UUT Loaded
+ # 
+
+    my $errors = $fp->load_package($uut, 
+        qw(bytes2int float2binary 
+           ifloat2binary int2bytes   
+           pack_float pack_int pack_num  
+           str2float str2int 
+           unpack_float unpack_int unpack_num) );
+ $errors
+
+ # ''
+ #
+
+ ##################
+ # str2int('0xFF')
+ # 
+
+ $result = $uut->str2int('0xFF')
+
+ # '255'
+ #
+
+ ##################
+ # str2int('255')
+ # 
+
+ $result = $uut->str2int('255')
+
+ # '255'
+ #
+
+ ##################
+ # str2int('hello')
+ # 
+
+ $result = $uut->str2int('hello')
+
+ # undef
+ #
+
+ ##################
+ # str2int(1E20)
+ # 
+
+ $result = $uut->str2int(1E20)
+
+ # undef
+ #
+
+ ##################
+ # str2int(' 78 45 25', ' 512E4 1024 hello world') @numbers
+ # 
+
+ my ($strings, @numbers) = str2int(' 78 45 25', ' 512E4 1024 hello world')
+ [@numbers]
+
+ # [
+ #          '78',
+ #          '45',
+ #          '25'
+ #        ]
+ #
+
+ ##################
+ # str2int(' 78 45 25', ' 512E4 1024 hello world') @strings
+ # 
+
+ join( ' ', @$strings)
+
+ # '512E4 1024 hello world'
+ #
+
+ ##################
+ # str2float(' 78 -2.4E-6 0.25', ' 512E4 hello world') numbers
+ # 
+
+ ($strings, @numbers) = str2float(' 78 -2.4E-6 0.0025', ' 512E4 hello world')
+ [@numbers]
+
+ # [
+ #          [
+ #            '78',
+ #            '1'
+ #          ],
+ #          [
+ #            '-24',
+ #            '-6'
+ #          ],
+ #          [
+ #            '25',
+ #            -3
+ #          ],
+ #          [
+ #            '512',
+ #            '6'
+ #          ]
+ #        ]
+ #
+
+ ##################
+ # str2float(' 78 -2.4E-6 0.25', ' 512E4 hello world') @strings
+ # 
+
+ ($strings, @numbers) = str2float(' 78 -2.4E-6 0.0025', ' 512E4 hello world')
+ join( ' ', @$strings)
+
+ # 'hello world'
+ #
+
+ ##################
+ # str2float(' 78 -2.4E-6 0.25 0xFF 077', ' 512E4 hello world', {ascii_float => 1}) numbers
+ # 
+
+ ($strings, @numbers) = str2float(' 78 -2.4E-6 0.0025 0xFF 077', ' 512E4 hello world', {ascii_float => 1})
+ [@numbers]
+
+ # [
+ #          '78',
+ #          '-2.4E-6',
+ #          '0.0025',
+ #          '255',
+ #          '63',
+ #          '512E4'
+ #        ]
+ #
+
+ ##################
+ # str2float(' 78 -2.4E-6 0.25', ' 512E4 hello world', {ascii_float => 1}) @strings
+ # 
+
+ ($strings, @numbers) = str2float(' 78 -2.4E-6 0.0025', ' 512E4 hello world')
+ join( ' ', @$strings)
+
+ # 'hello world'
+ #
+      my @test_strings = ('78 45 25', '512 1024 100000 hello world');
+      my $test_string_text = join ' ',@test_strings;
+      my $test_format = 'I';
+      my $expected_format = 'U4';
+      my $expected_numbers = '0000004e0000002d000000190000020000000400000186a0';
+      my $expected_strings = ['hello world'];
+      my $expected_unpack = [78, 45, 25, 512, 1024, 100000];
+
+      my ($format, $numbers, @strings) = pack_num('I',@test_strings);
+
+ ##################
+ # pack_num(I, 78 45 25 512 1024 100000 hello world) format
+ # 
+
+ $format
+
+ # 'U4'
+ #
+
+ ##################
+ # pack_num(I, 78 45 25 512 1024 100000 hello world) numbers
+ # 
+
+ unpack('H*',$numbers)
+
+ # '0000004e0000002d000000190000020000000400000186a0'
+ #
+
+ ##################
+ # pack_num(I, 78 45 25 512 1024 100000 hello world) @strings
+ # 
+
+ [@strings]
+
+ # [
+ #          'hello world'
+ #        ]
+ #
+
+ ##################
+ # unpack_num(U4, 78 45 25 512 1024 100000 hello world) error check
+ # 
+
+ ref(my $unpack_numbers = unpack_num($expected_format,$numbers))
+
+ # 'ARRAY'
+ #
+
+ ##################
+ # unpack_num(U4, 78 45 25 512 1024 100000 hello world) numbers
+ # 
+
+ $unpack_numbers
+
+ # [
+ #          '78',
+ #          '45',
+ #          '25',
+ #          '512',
+ #          '1024',
+ #          '100000'
+ #        ]
+ #
+
+      @test_strings = ('78 4.5 .25', '6.45E10 hello world');
+      $test_string_text = join ' ',@test_strings;
+      $test_format = 'I';
+      $expected_format = 'F8';
+      $expected_numbers = '405380000000000040120000000000003fd0000000000000422e08ffca000000';
+      $expected_strings = ['hello world'];
+      my @expected_unpack = (
+           '7.800000000000017486E1', 
+           '4.500000000000006245E0',
+           '2.5E-1',
+           '6.4500000000000376452E10'
+      );
+
+      ($format, $numbers, @strings) = pack_num('I',@test_strings);
+
+ ##################
+ # pack_num(I, 78 4.5 .25 6.45E10 hello world) format
+ # 
+
+ $format
+
+ # 'F8'
+ #
+
+ ##################
+ # pack_num(I, 78 4.5 .25 6.45E10 hello world) numbers
+ # 
+
+ unpack('H*',$numbers)
+
+ # '405380000000000040120000000000003fd0000000000000422e08ffca000000'
+ #
+
+ ##################
+ # pack_num(I, 78 4.5 .25 6.45E10 hello world) @strings
+ # 
+
+ [@strings]
+
+ # [
+ #          'hello world'
+ #        ]
+ #
+
+ ##################
+ # unpack_num(F8, 78 4.5 .25 6.45E10 hello world) error check
+ # 
+
+ ref($unpack_numbers = unpack_num($expected_format,$numbers))
+
+ # 'ARRAY'
+ #
+
+ ##################
+ # unpack_num(F8, 78 4.5 .25 6.45E10 hello world) numbers
+ # 
+
+ $unpack_numbers
+
+ # [
+ #          '7.800000000000017486E1',
+ #          '4.500000000000006245E0',
+ #          '2.5E-1',
+ #          '6.4500000000000376452E10'
+ #        ]
+ #
 
 =head1 QUALITY ASSURANCE
  
@@ -3630,12 +2496,12 @@ Running the test script C<SecsPack.t>
 and C<SecsPackStress.t> verifies
 the requirements for this module.
 
-The <tmake.pl> cover script for <Test::STDmaker|Test::STDmaker>
+The C<tmake.pl> cover script for C<Test::STDmaker|Test::STDmaker>
 automatically generated the
 C<SecsPack.t> and C<SecsPackStress.t> 
 test scripts,C<SecsPack.d> and C<SecsPackStress.d> demo scripts,
 and C<t::Data::SecsPack> and C<t::Data::SecsPackStress> STD program module PODs,
-from the C<t::Data::SecsPack> and C<t::Data::SecsPackStress> program modules
+from the C<t::Data::SecsPack> and C<t::Data::SecsPackStress> program module's content.
 The C<t::Data::SecsPack> and C<t::Data::SecsPackStress> program modules are
 in the distribution file
 F<Data-SecsPack-$VERSION.tar.gz>.
@@ -3691,7 +2557,7 @@ distribution.
 
 =back
 
-SOFTWARE DIAMONDS, http::www.softwarediamonds.com,
+SOFTWARE DIAMONDS, http://www.softwarediamonds.com,
 PROVIDES THIS SOFTWARE 
 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES,
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED

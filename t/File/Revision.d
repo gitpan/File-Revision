@@ -7,8 +7,8 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE);
-$VERSION = '0.02';   # automatically generated file
-$DATE = '2004/04/29';
+$VERSION = '0.03';   # automatically generated file
+$DATE = '2004/05/03';
 
 
 ##### Demonstration Script ####
@@ -123,7 +123,7 @@ EOF
 demo( "my\ \$errors\ \=\ \$fp\-\>load_package\(\$uut\)"); # typed in command           
       my $errors = $fp->load_package($uut); # execution
 
-demo( "$errors", # typed in command           
+demo( "\$errors", # typed in command           
       $errors # execution
 ) unless     $loaded; # condition for execution                            
 
@@ -151,7 +151,7 @@ print << "EOF";
  
 EOF
 
-demo( "$uut->revision2num($revision_letter)", # typed in command           
+demo( "\$uut\-\>revision2num\(\$revision_letter\)", # typed in command           
       $uut->revision2num($revision_letter)); # execution
 
 
@@ -163,7 +163,7 @@ print << "EOF";
  
 EOF
 
-demo( "$uut->num2revision($revision_number)", # typed in command           
+demo( "\$uut\-\>num2revision\(\$revision_number\)", # typed in command           
       $uut->num2revision($revision_number)); # execution
 
 
@@ -177,8 +177,8 @@ print << "EOF";
  
 EOF
 
-demo( "     $uut->revision_file( 7, $uut->parse_options( 'myfile.myext',
-     pre_revision => '', revision => 'AA'))", # typed in command           
+demo( "\ \ \ \ \ \$uut\-\>revision_file\(\ 7\,\ \$uut\-\>parse_options\(\ \'myfile\.myext\'\,\
+\ \ \ \ \ pre_revision\ \=\>\ \'\'\,\ revision\ \=\>\ \'AA\'\)\)", # typed in command           
            $uut->revision_file( 7, $uut->parse_options( 'myfile.myext',
      pre_revision => '', revision => 'AA'))); # execution
 
@@ -194,8 +194,8 @@ EOF
 demo( "\$file_spec\ \=\ File\:\:AnySpec\-\>fspec2os\(\'Unix\'\,\ \'_Drawings_\/Erotica\.pm\'\)"); # typed in command           
       $file_spec = File::AnySpec->fspec2os('Unix', '_Drawings_/Erotica.pm'); # execution
 
-demo( "    [$uut->new_revision($file_spec, ext => '.bak', revision => 1,
-    places => 6, pre_revision => '')]", # typed in command           
+demo( "\ \ \ \ \[\$uut\-\>new_revision\(\$file_spec\,\ ext\ \=\>\ \'\.bak\'\,\ revision\ \=\>\ 1\,\
+\ \ \ \ places\ \=\>\ 6\,\ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
           [$uut->new_revision($file_spec, ext => '.bak', revision => 1,
     places => 6, pre_revision => '')]); # execution
 
@@ -208,7 +208,7 @@ print << "EOF";
  
 EOF
 
-demo( "[$uut->new_revision($file_spec,  revision => 1000, places => 3, )]", # typed in command           
+demo( "\[\$uut\-\>new_revision\(\$file_spec\,\ \ revision\ \=\>\ 1000\,\ places\ \=\>\ 3\,\ \)\]", # typed in command           
       [$uut->new_revision($file_spec,  revision => 1000, places => 3, )]); # execution
 
 
@@ -220,8 +220,8 @@ print << "EOF";
  
 EOF
 
-demo( "     [$uut->new_revision($file_spec,  base => 'SoftwareDiamonds', 
-     ext => '.htm', revision => 5, places => 6, pre_revision => '')]", # typed in command           
+demo( "\ \ \ \ \ \[\$uut\-\>new_revision\(\$file_spec\,\ \ base\ \=\>\ \'SoftwareDiamonds\'\,\ \
+\ \ \ \ \ ext\ \=\>\ \'\.htm\'\,\ revision\ \=\>\ 5\,\ places\ \=\>\ 6\,\ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
            [$uut->new_revision($file_spec,  base => 'SoftwareDiamonds', 
      ext => '.htm', revision => 5, places => 6, pre_revision => '')]); # execution
 
@@ -237,7 +237,7 @@ print << "EOF";
  
 EOF
 
-demo( "[$uut->new_revision($file_spec, revision => 0,  pre_revision => '')]", # typed in command           
+demo( "\[\$uut\-\>new_revision\(\$file_spec\,\ revision\ \=\>\ 0\,\ \ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
       [$uut->new_revision($file_spec, revision => 0,  pre_revision => '')]); # execution
 
 
@@ -258,7 +258,7 @@ print << "EOF";
  
 EOF
 
-demo( "[($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]", # typed in command           
+demo( "\[\(\$backup_file\,\$rotate\)\ \=\ \$uut\-\>rotate\(\$to_file\,\ rotate\ \=\>\ 2\,\ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
       [($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]); # execution
 
 
@@ -273,7 +273,7 @@ print << "EOF";
  
 EOF
 
-demo( "[($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]", # typed in command           
+demo( "\[\(\$backup_file\,\$rotate\)\ \=\ \$uut\-\>rotate\(\$to_file\,\ rotate\ \=\>\ 2\,\ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
       [($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]); # execution
 
 
@@ -288,7 +288,7 @@ print << "EOF";
  
 EOF
 
-demo( "[($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]", # typed in command           
+demo( "\[\(\$backup_file\,\$rotate\)\ \=\ \$uut\-\>rotate\(\$to_file\,\ rotate\ \=\>\ 2\,\ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
       [($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]); # execution
 
 
@@ -303,7 +303,7 @@ print << "EOF";
  
 EOF
 
-demo( "[($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]", # typed in command           
+demo( "\[\(\$backup_file\,\$rotate\)\ \=\ \$uut\-\>rotate\(\$to_file\,\ rotate\ \=\>\ 2\,\ pre_revision\ \=\>\ \'\'\)\]", # typed in command           
       [($backup_file,$rotate) = $uut->rotate($to_file, rotate => 2, pre_revision => '')]); # execution
 
 

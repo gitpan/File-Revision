@@ -23,11 +23,11 @@ my $tests = join ' ',unix2os('t/File/Revision.t');
 WriteMakefile(
     NAME => 'File::Revision',
     DISTNAME => 'File-Revision',
-    VERSION  => '0.02',
+    VERSION  => '0.03',
     dist     => {COMPRESS => 'gzip',
                 'gz' => 'gz'},
     test     => {TESTS => $tests},
-    PREREQ_PM => {'Data::Startup' => '0.01'},
+    PREREQ_PM => {'Data::Startup' => '0.03'},
     
 
     ($] >= 5.005 ?     

@@ -14,8 +14,8 @@ use File::Spec;
 use Data::Startup;
 
 use vars qw($VERSION $DATE);
-$VERSION = '1.03';
-$DATE = '2004/04/29';
+$VERSION = '1.04';
+$DATE = '2004/05/03';
 
 use vars qw($revision_letters $revision_base);
 $revision_letters = 'ABCDEFGHJKLMNPRTUVWY';
@@ -48,6 +48,7 @@ sub new_revision
      if($options->{revision_number} <= 0 && !-e $file) {
          return ($file, $options->{rev_letters} ? 'A' : '1');
      }
+
 
      #######
      # Search for a file that does not exist that has the next revision from
@@ -97,6 +98,7 @@ sub parse_options
      shift @_ if UNIVERSAL::isa($_[0],__PACKAGE__);
      my $file = shift;
      return(undef,"No file supplies\n") unless($file);
+
      my $options = new Data::Startup(@_);
 
      #####
@@ -111,16 +113,20 @@ sub parse_options
      $options->{ext} = $ext unless $options->{ext};
      $options->{base} = $base unless $options->{base};
 
+
      ######
      # Process revision
      #
      $options->{revision} = $options->{rotate} if $options->{rotate};
+     $options->{revision} = 0 unless $options->{revision};
      $options->{revision} = $options->{revision} =~ /\s*(\S+)/ ? $1 : '0';
-     if ($options->{revision} =~ /^\d+/) {
+     if ($options->{revision} =~ /^(\d+)/) {
+         $options->{revision_number} = $1;
          $options->{revision_number} = $options->{revision};
          $options->{rev_letters} = 0;
      }
-     elsif($options->{revision} =~ /^[$revision_letters]+/) {
+     elsif($options->{revision} =~ /^([$revision_letters]+)/) {
+         $options->{revision_number} = $1;
          $options->{revision_number} = revision2num($options->{revision});
          $options->{rev_letters} = 1;
      }
@@ -831,12 +837,14 @@ follow on the next lines as comments. For example,
 
 Running the test script C<Revision.t> verifies
 the requirements for this module.
-
-The <tmake.pl> cover script for L<Test::STDmaker|Test::STDmaker>
+The C<tmake.pl> cover script for L<Test::STDmaker|Test::STDmaker>
 automatically generated the
 C<Revision.t> test script, C<Revision.d> demo script,
 and C<t::File::Revision> STD program module POD,
 from the C<t::File::Revision> program module contents.
+The C<tmake.pl> cover script automatically ran the
+C<Startup.d> demo script and inserted the results
+into the 'DEMONSTRATION' section above.
 The  C<t::File::Revision> program module
 is in the distribution file
 F<File-Revision-$VERSION.tar.gz>.

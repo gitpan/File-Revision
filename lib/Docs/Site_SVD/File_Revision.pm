@@ -10,28 +10,28 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.02';
-$DATE = '2004/04/29';
+$VERSION = '0.03';
+$DATE = '2004/05/03';
 $FILE = __FILE__;
 
 use vars qw(%INVENTORY);
 %INVENTORY = (
-    'lib/Docs/Site_SVD/File_Revision.pm' => [qw(0.02 2004/04/29), 'revised 0.01'],
-    'MANIFEST' => [qw(0.02 2004/04/29), 'generated, replaces 0.01'],
-    'Makefile.PL' => [qw(0.02 2004/04/29), 'generated, replaces 0.01'],
-    'README' => [qw(0.02 2004/04/29), 'generated, replaces 0.01'],
-    'lib/File/Revision.pm' => [qw(1.03 2004/04/29), 'revised 1.02'],
-    't/File/Revision.d' => [qw(0.02 2004/04/29), 'revised 0.01'],
-    't/File/Revision.pm' => [qw(0.02 2004/04/29), 'revised 0.01'],
-    't/File/Revision.t' => [qw(0.02 2004/04/29), 'revised 0.01'],
-    't/File/_Drawings_/Erotica.pm' => [qw(0.01 2004/04/29), 'unchanged'],
-    't/File/File/Package.pm' => [qw(1.16 2004/04/29), 'unchanged'],
-    't/File/File/AnySpec.pm' => [qw(1.13 2004/04/29), 'unchanged'],
-    't/File/File/Where.pm' => [qw(1.15 2004/04/29), 'unchanged'],
-    't/File/Test/Tech.pm' => [qw(1.21 2004/04/29), 'unchanged'],
-    't/File/Data/Secs2.pm' => [qw(1.18 2004/04/29), 'unchanged'],
-    't/File/Data/SecsPack.pm' => [qw(0.03 2004/04/29), 'unchanged'],
-    't/File/Data/Startup.pm' => [qw(0.03 2004/04/29), 'unchanged'],
+    'lib/Docs/Site_SVD/File_Revision.pm' => [qw(0.03 2004/05/03), 'revised 0.02'],
+    'MANIFEST' => [qw(0.03 2004/05/03), 'generated, replaces 0.02'],
+    'Makefile.PL' => [qw(0.03 2004/05/03), 'generated, replaces 0.02'],
+    'README' => [qw(0.03 2004/05/03), 'generated, replaces 0.02'],
+    'lib/File/Revision.pm' => [qw(1.04 2004/05/03), 'revised 1.03'],
+    't/File/Revision.d' => [qw(0.03 2004/05/03), 'revised 0.02'],
+    't/File/Revision.pm' => [qw(0.01 2004/04/29), 'unchanged'],
+    't/File/Revision.t' => [qw(0.01 2004/04/29), 'unchanged'],
+    't/File/_Drawings_/Erotica.pm' => [qw(0.02 2004/05/03), 'revised 0.01'],
+    't/File/File/Package.pm' => [qw(1.16 2004/05/03), 'unchanged'],
+    't/File/File/AnySpec.pm' => [qw(1.14 2004/05/03), 'revised 1.13'],
+    't/File/File/Where.pm' => [qw(1.15 2004/05/03), 'unchanged'],
+    't/File/Test/Tech.pm' => [qw(1.22 2004/05/03), 'unchanged'],
+    't/File/Data/Secs2.pm' => [qw(1.19 2004/05/03), 'revised 1.18'],
+    't/File/Data/SecsPack.pm' => [qw(0.04 2004/05/03), 'revised 0.03'],
+    't/File/Data/Startup.pm' => [qw(0.04 2004/05/03), 'revised 0.03'],
 
 );
 
@@ -58,11 +58,11 @@ use vars qw(%INVENTORY);
 
   File::Revision - return a name of non-existing backup file with a revision id
 
- Revision: A
+ Revision: B
 
- Version: 0.02
+ Version: 0.03
 
- Date: 2004/04/29
+ Date: 2004/05/03
 
  Prepared for: General Public 
 
@@ -101,7 +101,7 @@ or comply to the capital letter drafting revision standards.
 
 =head2 1.3 Document overview.
 
-This document releases File::Revision version 0.02
+This document releases File::Revision version 0.03
 providing a description of the inventory, installation
 instructions and other information necessary to
 utilize and track this release.
@@ -116,7 +116,7 @@ system file specification.
 
 This document releases the file 
 
- File-Revision-0.02.tar.gz
+ File-Revision-0.03.tar.gz
 
 found at the following repository(s):
 
@@ -188,22 +188,22 @@ consists of the following files:
 
  file                                                         version date       comment
  ------------------------------------------------------------ ------- ---------- ------------------------
- lib/Docs/Site_SVD/File_Revision.pm                           0.02    2004/04/29 revised 0.01
- MANIFEST                                                     0.02    2004/04/29 generated, replaces 0.01
- Makefile.PL                                                  0.02    2004/04/29 generated, replaces 0.01
- README                                                       0.02    2004/04/29 generated, replaces 0.01
- lib/File/Revision.pm                                         1.03    2004/04/29 revised 1.02
- t/File/Revision.d                                            0.02    2004/04/29 revised 0.01
- t/File/Revision.pm                                           0.02    2004/04/29 revised 0.01
- t/File/Revision.t                                            0.02    2004/04/29 revised 0.01
- t/File/_Drawings_/Erotica.pm                                 0.01    2004/04/29 unchanged
- t/File/File/Package.pm                                       1.16    2004/04/29 unchanged
- t/File/File/AnySpec.pm                                       1.13    2004/04/29 unchanged
- t/File/File/Where.pm                                         1.15    2004/04/29 unchanged
- t/File/Test/Tech.pm                                          1.21    2004/04/29 unchanged
- t/File/Data/Secs2.pm                                         1.18    2004/04/29 unchanged
- t/File/Data/SecsPack.pm                                      0.03    2004/04/29 unchanged
- t/File/Data/Startup.pm                                       0.03    2004/04/29 unchanged
+ lib/Docs/Site_SVD/File_Revision.pm                           0.03    2004/05/03 revised 0.02
+ MANIFEST                                                     0.03    2004/05/03 generated, replaces 0.02
+ Makefile.PL                                                  0.03    2004/05/03 generated, replaces 0.02
+ README                                                       0.03    2004/05/03 generated, replaces 0.02
+ lib/File/Revision.pm                                         1.04    2004/05/03 revised 1.03
+ t/File/Revision.d                                            0.03    2004/05/03 revised 0.02
+ t/File/Revision.pm                                           0.01    2004/04/29 unchanged
+ t/File/Revision.t                                            0.01    2004/04/29 unchanged
+ t/File/_Drawings_/Erotica.pm                                 0.02    2004/05/03 revised 0.01
+ t/File/File/Package.pm                                       1.16    2004/05/03 unchanged
+ t/File/File/AnySpec.pm                                       1.14    2004/05/03 revised 1.13
+ t/File/File/Where.pm                                         1.15    2004/05/03 unchanged
+ t/File/Test/Tech.pm                                          1.22    2004/05/03 unchanged
+ t/File/Data/Secs2.pm                                         1.19    2004/05/03 revised 1.18
+ t/File/Data/SecsPack.pm                                      0.04    2004/05/03 revised 0.03
+ t/File/Data/Startup.pm                                       0.04    2004/05/03 revised 0.03
 
 
 =head2 3.3 Changes
@@ -221,6 +221,11 @@ Originated.
 Bad problems with C<$options> being init. Seems running with Exporter masks
 problems. Need to make sure make a dry run without Exporter between final
 distribution run, and triple check with Exporter.
+
+=item File-Revision-0.03
+
+In the C<parse_options> subroutine, supply an revision if there is none.
+Also make sure pick out a valid revision when from the revision string.
 
 =back
 
@@ -260,13 +265,13 @@ Enter one of the following repositories in a web browser:
   http://www.softwarediamonds/packages/
   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-Right click on 'File-Revision-0.02.tar.gz' and download to a temporary
+Right click on 'File-Revision-0.03.tar.gz' and download to a temporary
 installation directory.
 Enter the following where $make is 'nmake' for microsoft
 windows; otherwise 'make'.
 
- gunzip File-Revision-0.02.tar.gz
- tar -xf File-Revision-0.02.tar
+ gunzip File-Revision-0.03.tar.gz
+ tar -xf File-Revision-0.03.tar
  perl Makefile.PL
  $make test
  $make install
@@ -279,7 +284,7 @@ not install, download and install C<unxutils> from
 
 =item Prerequistes.
 
- 'Data::Startup' => '0.01'
+ 'Data::Startup' => '0.03'
 
 
 =item Security, privacy, or safety precautions.
@@ -371,11 +376,11 @@ __DATA__
 DISTNAME: File-Revision^
 REPOSITORY_DIR: packages^
 
-VERSION : 0.02^
+VERSION : 0.03^
 FREEZE: 1^
 PREVIOUS_DISTNAME:  ^
-PREVIOUS_RELEASE: 0.01^
-REVISION: A^
+PREVIOUS_RELEASE: 0.02^
+REVISION: B^
 
 AUTHOR  : SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>^
 
@@ -419,7 +424,7 @@ lib/Data/Startup.pm => t/File/Data/Startup.pm
 ^
 
 PREREQ_PM: 
-'Data::Startup' => '0.01'
+'Data::Startup' => '0.03'
 ^
 
 README_PODS: lib/File/Revision.pm^
@@ -440,6 +445,11 @@ Originated.
 Bad problems with C<$options> being init. Seems running with Exporter masks
 problems. Need to make sure make a dry run without Exporter between final
 distribution run, and triple check with Exporter.
+
+\=item File-Revision-0.03
+
+In the C<parse_options> subroutine, supply an revision if there is none.
+Also make sure pick out a valid revision when from the revision string.
 
 \=back
 
