@@ -10,7 +10,7 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.01';
+$VERSION = '0.02';
 $DATE = '2004/04/29';
 $FILE = __FILE__;
 
@@ -92,7 +92,8 @@ L<STD FormDB Test Description Fields|Test::STDmaker/STD FormDB Test Description 
      use File::Copy;
      my $fp = 'File::Package';
      my $uut = 'File::Revision';
-     my ($file_spec, $from_file, $to_file, $backup_file, $rotate);
+     my ($file_spec, $from_file, $to_file);
+     my ($backup_file, $rotate) = ('','');
      my $loaded = '';
  ^
  VO: ^
@@ -412,7 +413,8 @@ Verify: Revision.t^
     use File::Copy;
     my $fp = 'File::Package';
     my $uut = 'File::Revision';
-    my ($file_spec, $from_file, $to_file, $backup_file, $rotate);
+    my ($file_spec, $from_file, $to_file);
+    my ($backup_file, $rotate) = ('','');
     my $loaded = '';
 ^
 

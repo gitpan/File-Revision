@@ -14,7 +14,7 @@ use File::Spec;
 use Data::Startup;
 
 use vars qw($VERSION $DATE);
-$VERSION = '1.02';
+$VERSION = '1.03';
 $DATE = '2004/04/29';
 
 use vars qw($revision_letters $revision_base);
@@ -137,16 +137,16 @@ sub parse_options
      if($options->{places}) {
          if($options->{rev_letters}) {
              $options->{top_revision_number} = $revision_base ** $options->{places}; 
-             $options->{lead_places} = '_' unless $options{lead_places};
+             $options->{lead_places} = '_' unless $options->{lead_places};
          }
          else {
              $options->{top_revision_number} = 10 ** $options->{places};
-             $options->{lead_places} = '0' unless $options{lead_places};
+             $options->{lead_places} = '0' unless $options->{lead_places};
          }
      }
      else {
          $options->{top_revision_number} = '';
-         $options->{lead_places} = '' unless $options{lead_places}; 
+         $options->{lead_places} = '' unless $options->{lead_places}; 
      }
 
      $options->{pre_revision} = '-' unless defined $options->{pre_revision};
@@ -587,7 +587,8 @@ follow on the next lines as comments. For example,
      use File::Copy;
      my $fp = 'File::Package';
      my $uut = 'File::Revision';
-     my ($file_spec, $from_file, $to_file, $backup_file, $rotate);
+     my ($file_spec, $from_file, $to_file);
+     my ($backup_file, $rotate) = ('','');
      my $loaded = '';
 
  ##################
@@ -595,26 +596,236 @@ follow on the next lines as comments. For example,
  # 
 
  my $errors = $fp->load_package($uut)
- Cannot load File::Revision
- 	Global symbol "%options" requires explicit package name at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 140.
- 	Global symbol "%options" requires explicit package name at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 144.
- 	Global symbol "%options" requires explicit package name at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 149.
- 	BEGIN not safe after errors--compilation aborted at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 169.
- 	Compilation failed in require at (eval 12) line 1.
 
- # 'Cannot load File::Revision
- #	Global symbol "%options" requires explicit package name at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 140.
- #	Global symbol "%options" requires explicit package name at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 144.
- #	Global symbol "%options" requires explicit package name at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 149.
- #	BEGIN not safe after errors--compilation aborted at E:\User\SoftwareDiamonds\installation\lib/File/Revision.pm line 169.
- #	Compilation failed in require at (eval 12) line 1.
- #	'
+ # ''
  #
 
  ##################
  # revision2num('-')
  # 
 
+ File::Revision->revision2num(-)
+
+ # 0
+ #
+
+ ##################
+ # num2revision('0')
+ # 
+
+ File::Revision->num2revision(0)
+
+ # '-'
+ #
+
+ ##################
+ # revision2num('Y')
+ # 
+
+ File::Revision->revision2num(Y)
+
+ # 20
+ #
+
+ ##################
+ # num2revision('20')
+ # 
+
+ File::Revision->num2revision(20)
+
+ # 'Y'
+ #
+
+ ##################
+ # revision2num('AA')
+ # 
+
+ File::Revision->revision2num(AA)
+
+ # 21
+ #
+
+ ##################
+ # num2revision('21')
+ # 
+
+ File::Revision->num2revision(21)
+
+ # 'AA'
+ #
+
+ ##################
+ # revision2num('WY')
+ # 
+
+ File::Revision->revision2num(WY)
+
+ # 400
+ #
+
+ ##################
+ # num2revision('400')
+ # 
+
+ File::Revision->num2revision(400)
+
+ # 'WY'
+ #
+
+ ##################
+ # revision2num('YY')
+ # 
+
+ File::Revision->revision2num(YY)
+
+ # 420
+ #
+
+ ##################
+ # num2revision('420')
+ # 
+
+ File::Revision->num2revision(420)
+
+ # 'YY'
+ #
+
+ ##################
+ # revision2num('AAA')
+ # 
+
+ File::Revision->revision2num(AAA)
+
+ # 421
+ #
+
+ ##################
+ # num2revision('421')
+ # 
+
+ File::Revision->num2revision(421)
+
+ # 'AAA'
+ #
+
+ ##################
+ # revision_file( 7, parse_options( 'myfile.myext', pre_revision => '', revision => 'AA') )
+ # 
+
+      File::Revision->revision_file( 7, File::Revision->parse_options( 'myfile.myext',
+      pre_revision => '', revision => 'AA'))
+
+ # 'myfileG.myext'
+ #
+
+ ##################
+ # new_revision(ext => '.bak', revision => 1, places => 6, pre_revision => '')
+ # 
+
+ $file_spec = File::AnySpec->fspec2os('Unix', '_Drawings_/Erotica.pm')
+     [File::Revision->new_revision(_Drawings_\Erotica.pm, ext => '.bak', revision => 1,
+     places => 6, pre_revision => '')]
+
+ # [
+ #          '_Drawings_\Erotica000001.bak',
+ #          '2'
+ #        ]
+ #
+
+ ##################
+ # new_revision(ext => '.htm' revision => 5, places => 6, pre_revision => '')
+ # 
+
+ [File::Revision->new_revision(_Drawings_\Erotica.pm,  revision => 1000, places => 3, )]
+
+ # [
+ #          undef,
+ #          'Revision number 1000 overflowed limit of 1000.
+ #'
+ #        ]
+ #
+
+ ##################
+ # new_revision(base => 'SoftwareDiamonds', ext => '.htm', places => 6, pre_revision => '')
+ # 
+
+      [File::Revision->new_revision(_Drawings_\Erotica.pm,  base => 'SoftwareDiamonds', 
+      ext => '.htm', revision => 5, places => 6, pre_revision => '')]
+
+ # [
+ #          '_Drawings_\SoftwareDiamonds000005.htm',
+ #          '6'
+ #        ]
+ #
+ $file_spec = File::AnySpec->fspec2os('Unix', '_Drawings_/original.htm')
+
+ ##################
+ # new_revision(_Drawings_\original.htm, revision => 0,  pre_revision => '')
+ # 
+
+ [File::Revision->new_revision(_Drawings_\original.htm, revision => 0,  pre_revision => '')]
+
+ # [
+ #          '_Drawings_\original.htm',
+ #          '1'
+ #        ]
+ #
+      rmtree( '_Revision_');
+      mkpath( '_Revision_');
+      $from_file = File::AnySpec->fspec2os('Unix', '_Drawings_/Erotica.pm');
+      $to_file = File::AnySpec->fspec2os('Unix', '_Revision_/Erotica.pm');
+
+ ##################
+ # File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2) 1st time
+ # 
+
+ [(,) = File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2, pre_revision => '')]
+
+ # [
+ #          '_Revision_\Erotica0.pm',
+ #          0
+ #        ]
+ #
+ copy($from_file,$backup_file)
+
+ ##################
+ # File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2) 2nd time
+ # 
+
+ [(_Revision_\Erotica0.pm,0) = File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2, pre_revision => '')]
+
+ # [
+ #          '_Revision_\Erotica1.pm',
+ #          '1'
+ #        ]
+ #
+ copy($from_file,$backup_file)
+
+ ##################
+ # File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2) 3rd time
+ # 
+
+ [(_Revision_\Erotica1.pm,1) = File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2, pre_revision => '')]
+
+ # [
+ #          '_Revision_\Erotica2.pm',
+ #          '2'
+ #        ]
+ #
+ copy($from_file,$backup_file)
+
+ ##################
+ # File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2) 4th time
+ # 
+
+ [(_Revision_\Erotica2.pm,2) = File::Revision->rotate(_Revision_\Erotica.pm, rotate => 2, pre_revision => '')]
+
+ # [
+ #          '_Revision_\Erotica2.pm',
+ #          '2'
+ #        ]
+ #
+ rmtree( '_Revision_');
 
 =head1 QUALITY ASSURANCE
 

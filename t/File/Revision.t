@@ -7,7 +7,7 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE);
-$VERSION = '0.01';   # automatically generated file
+$VERSION = '0.02';   # automatically generated file
 $DATE = '2004/04/29';
 $FILE = __FILE__;
 
@@ -139,7 +139,8 @@ use warnings;
     use File::Copy;
     my $fp = 'File::Package';
     my $uut = 'File::Revision';
-    my ($file_spec, $from_file, $to_file, $backup_file, $rotate);
+    my ($file_spec, $from_file, $to_file);
+    my ($backup_file, $rotate) = ('','');
     my $loaded = '';
 
 ok(  $loaded = $fp->is_package_loaded($uut), # actual results

@@ -10,28 +10,28 @@ use warnings;
 use warnings::register;
 
 use vars qw($VERSION $DATE $FILE );
-$VERSION = '0.01';
+$VERSION = '0.02';
 $DATE = '2004/04/29';
 $FILE = __FILE__;
 
 use vars qw(%INVENTORY);
 %INVENTORY = (
-    'lib/Docs/Site_SVD/File_Revision.pm' => [qw(0.01 2004/04/29), 'new'],
-    'MANIFEST' => [qw(0.01 2004/04/29), 'generated new'],
-    'Makefile.PL' => [qw(0.01 2004/04/29), 'generated new'],
-    'README' => [qw(0.01 2004/04/29), 'generated new'],
-    'lib/File/Revision.pm' => [qw(1.02 2004/04/29), 'new'],
-    't/File/Revision.d' => [qw(0.01 2004/04/29), 'new'],
-    't/File/Revision.pm' => [qw(0.01 2004/04/29), 'new'],
-    't/File/Revision.t' => [qw(0.01 2004/04/29), 'new'],
-    't/File/_Drawings_/Erotica.pm' => [qw(0.01 2004/04/29), 'new'],
-    't/File/File/Package.pm' => [qw(1.16 2004/04/29), 'new'],
-    't/File/File/AnySpec.pm' => [qw(1.13 2004/04/29), 'new'],
-    't/File/File/Where.pm' => [qw(1.15 2004/04/29), 'new'],
-    't/File/Test/Tech.pm' => [qw(1.21 2004/04/29), 'new'],
-    't/File/Data/Secs2.pm' => [qw(1.18 2004/04/29), 'new'],
-    't/File/Data/SecsPack.pm' => [qw(0.03 2004/04/29), 'new'],
-    't/File/Data/Startup.pm' => [qw(0.03 2004/04/29), 'new'],
+    'lib/Docs/Site_SVD/File_Revision.pm' => [qw(0.02 2004/04/29), 'revised 0.01'],
+    'MANIFEST' => [qw(0.02 2004/04/29), 'generated, replaces 0.01'],
+    'Makefile.PL' => [qw(0.02 2004/04/29), 'generated, replaces 0.01'],
+    'README' => [qw(0.02 2004/04/29), 'generated, replaces 0.01'],
+    'lib/File/Revision.pm' => [qw(1.03 2004/04/29), 'revised 1.02'],
+    't/File/Revision.d' => [qw(0.02 2004/04/29), 'revised 0.01'],
+    't/File/Revision.pm' => [qw(0.02 2004/04/29), 'revised 0.01'],
+    't/File/Revision.t' => [qw(0.02 2004/04/29), 'revised 0.01'],
+    't/File/_Drawings_/Erotica.pm' => [qw(0.01 2004/04/29), 'unchanged'],
+    't/File/File/Package.pm' => [qw(1.16 2004/04/29), 'unchanged'],
+    't/File/File/AnySpec.pm' => [qw(1.13 2004/04/29), 'unchanged'],
+    't/File/File/Where.pm' => [qw(1.15 2004/04/29), 'unchanged'],
+    't/File/Test/Tech.pm' => [qw(1.21 2004/04/29), 'unchanged'],
+    't/File/Data/Secs2.pm' => [qw(1.18 2004/04/29), 'unchanged'],
+    't/File/Data/SecsPack.pm' => [qw(0.03 2004/04/29), 'unchanged'],
+    't/File/Data/Startup.pm' => [qw(0.03 2004/04/29), 'unchanged'],
 
 );
 
@@ -58,9 +58,9 @@ use vars qw(%INVENTORY);
 
   File::Revision - return a name of non-existing backup file with a revision id
 
- Revision: -
+ Revision: A
 
- Version: 0.01
+ Version: 0.02
 
  Date: 2004/04/29
 
@@ -68,7 +68,7 @@ use vars qw(%INVENTORY);
 
  Prepared by:  SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>
 
- Copyright: copyright © 2003 Software Diamonds
+ Copyright: copyright © 2004 Software Diamonds
 
  Classification: NONE
 
@@ -101,7 +101,7 @@ or comply to the capital letter drafting revision standards.
 
 =head2 1.3 Document overview.
 
-This document releases File::Revision version 0.01
+This document releases File::Revision version 0.02
 providing a description of the inventory, installation
 instructions and other information necessary to
 utilize and track this release.
@@ -116,7 +116,7 @@ system file specification.
 
 This document releases the file 
 
- File-Revision-0.01.tar.gz
+ File-Revision-0.02.tar.gz
 
 found at the following repository(s):
 
@@ -130,7 +130,7 @@ are as follows:
 
 =item Copyright.
 
-copyright © 2003 Software Diamonds
+copyright © 2004 Software Diamonds
 
 =item Copyright holder contact.
 
@@ -188,22 +188,22 @@ consists of the following files:
 
  file                                                         version date       comment
  ------------------------------------------------------------ ------- ---------- ------------------------
- lib/Docs/Site_SVD/File_Revision.pm                           0.01    2004/04/29 new
- MANIFEST                                                     0.01    2004/04/29 generated new
- Makefile.PL                                                  0.01    2004/04/29 generated new
- README                                                       0.01    2004/04/29 generated new
- lib/File/Revision.pm                                         1.02    2004/04/29 new
- t/File/Revision.d                                            0.01    2004/04/29 new
- t/File/Revision.pm                                           0.01    2004/04/29 new
- t/File/Revision.t                                            0.01    2004/04/29 new
- t/File/_Drawings_/Erotica.pm                                 0.01    2004/04/29 new
- t/File/File/Package.pm                                       1.16    2004/04/29 new
- t/File/File/AnySpec.pm                                       1.13    2004/04/29 new
- t/File/File/Where.pm                                         1.15    2004/04/29 new
- t/File/Test/Tech.pm                                          1.21    2004/04/29 new
- t/File/Data/Secs2.pm                                         1.18    2004/04/29 new
- t/File/Data/SecsPack.pm                                      0.03    2004/04/29 new
- t/File/Data/Startup.pm                                       0.03    2004/04/29 new
+ lib/Docs/Site_SVD/File_Revision.pm                           0.02    2004/04/29 revised 0.01
+ MANIFEST                                                     0.02    2004/04/29 generated, replaces 0.01
+ Makefile.PL                                                  0.02    2004/04/29 generated, replaces 0.01
+ README                                                       0.02    2004/04/29 generated, replaces 0.01
+ lib/File/Revision.pm                                         1.03    2004/04/29 revised 1.02
+ t/File/Revision.d                                            0.02    2004/04/29 revised 0.01
+ t/File/Revision.pm                                           0.02    2004/04/29 revised 0.01
+ t/File/Revision.t                                            0.02    2004/04/29 revised 0.01
+ t/File/_Drawings_/Erotica.pm                                 0.01    2004/04/29 unchanged
+ t/File/File/Package.pm                                       1.16    2004/04/29 unchanged
+ t/File/File/AnySpec.pm                                       1.13    2004/04/29 unchanged
+ t/File/File/Where.pm                                         1.15    2004/04/29 unchanged
+ t/File/Test/Tech.pm                                          1.21    2004/04/29 unchanged
+ t/File/Data/Secs2.pm                                         1.18    2004/04/29 unchanged
+ t/File/Data/SecsPack.pm                                      0.03    2004/04/29 unchanged
+ t/File/Data/Startup.pm                                       0.03    2004/04/29 unchanged
 
 
 =head2 3.3 Changes
@@ -216,6 +216,11 @@ The changes to the previous version are as follows:
 
 Originated.
 
+=item File-Revision-0.02
+
+Bad problems with C<$options> being init. Seems running with Exporter masks
+problems. Need to make sure make a dry run without Exporter between final
+distribution run, and triple check with Exporter.
 
 =back
 
@@ -255,20 +260,20 @@ Enter one of the following repositories in a web browser:
   http://www.softwarediamonds/packages/
   http://www.perl.com/CPAN/authors/id/S/SO/SOFTDIA/
 
-Right click on 'File-Revision-0.01.tar.gz' and download to a temporary
+Right click on 'File-Revision-0.02.tar.gz' and download to a temporary
 installation directory.
 Enter the following where $make is 'nmake' for microsoft
 windows; otherwise 'make'.
 
- gunzip File-Revision-0.01.tar.gz
- tar -xf File-Revision-0.01.tar
+ gunzip File-Revision-0.02.tar.gz
+ tar -xf File-Revision-0.02.tar
  perl Makefile.PL
  $make test
  $make install
 
 On Microsoft operating system, nmake, tar, and gunzip 
 must be in the exeuction path. If tar and gunzip are
-not install, download and install unxutils from
+not install, download and install C<unxutils> from
 
  http://packages.softwarediamonds.com
 
@@ -355,20 +360,7 @@ Plain Old Documentation
 =back
 
 =for html
-<hr>
-<p><br>
-<!-- BLK ID="PROJECT_MANAGEMENT" -->
-<!-- /BLK -->
-<p><br>
-<!-- BLK ID="NOTICE" -->
-<!-- /BLK -->
-<p><br>
-<!-- BLK ID="OPT-IN" -->
-<!-- /BLK -->
-<p><br>
-<!-- BLK ID="LOG_CGI" -->
-<!-- /BLK -->
-<p><br>
+
 
 =cut
 
@@ -379,11 +371,11 @@ __DATA__
 DISTNAME: File-Revision^
 REPOSITORY_DIR: packages^
 
-VERSION : 0.01^
-FREEZE: 0^
+VERSION : 0.02^
+FREEZE: 1^
 PREVIOUS_DISTNAME:  ^
-PREVIOUS_RELEASE:  ^
-REVISION: -^
+PREVIOUS_RELEASE: 0.01^
+REVISION: A^
 
 AUTHOR  : SoftwareDiamonds.com E<lt>support@SoftwareDiamonds.comE<gt>^
 
@@ -396,7 +388,7 @@ This has many uses backup file uses.
 
 TITLE   :  File::Revision - return a name of non-existing backup file with a revision id^
 END_USER: General Public^
-COPYRIGHT: copyright © 2003 Software Diamonds^
+COPYRIGHT: copyright © 2004 Software Diamonds^
 CLASSIFICATION: NONE^
 TEMPLATE:  ^
 CSS: help.css^
@@ -443,6 +435,11 @@ The changes to the previous version are as follows:
 
 Originated.
 
+\=item File-Revision-0.02
+
+Bad problems with C<$options> being init. Seems running with Exporter masks
+problems. Need to make sure make a dry run without Exporter between final
+distribution run, and triple check with Exporter.
 
 \=back
 
@@ -563,7 +560,7 @@ windows; otherwise 'make'.
 
 On Microsoft operating system, nmake, tar, and gunzip 
 must be in the exeuction path. If tar and gunzip are
-not install, download and install unxutils from
+not install, download and install C<unxutils> from
 
  http://packages.softwarediamonds.com
 ^
@@ -607,22 +604,8 @@ SEE_ALSO:
 ^
 
 
-
 HTML:
-<hr>
-<p><br>
-<!-- BLK ID="PROJECT_MANAGEMENT" -->
-<!-- /BLK -->
-<p><br>
-<!-- BLK ID="NOTICE" -->
-<!-- /BLK -->
-<p><br>
-<!-- BLK ID="OPT-IN" -->
-<!-- /BLK -->
-<p><br>
-<!-- BLK ID="LOG_CGI" -->
-<!-- /BLK -->
-<p><br>
+
 ^
 ~-~
 
